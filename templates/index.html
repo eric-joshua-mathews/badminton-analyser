@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Badminton Analyzer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+</head>
+<body class="container">
+    <h3 class="center-align">🏸 Badminton Analyzer</h3>
+    <p class="center-align">Choose how you want to start</p>
+    <div class="center-align">
+        <a href="{{ url_for('uploads') }}" class="waves-effect waves-light btn blue">
+        upload video</a>
+
+        <a href="{{ url_for('videoless_input') }}" class="waves-effect waves-light btn blue">
+             video-less mode</a>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+</body>
+</html>
