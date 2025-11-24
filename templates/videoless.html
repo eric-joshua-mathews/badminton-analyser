@@ -5,16 +5,19 @@
     <title>VIDEO-LESS MODE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
-        img{
-          max-width: 100%;
-          max-height: 750px;
-          border:px solid #333;
-          /*display: block;*/
-          /*margin: 20px auto;*/
-        }
-
         .marker{border:none;}
         p {text-align: center;}
+        #court-wrapper{
+            position : relative;
+            display: inline-block;
+            width: 90vw;
+            max-width: none;
+          }
+        #court{
+            width: 100%;
+            height: auto; /*to keep aspect ratio lol*/
+            display: block;
+        }
     </style>
 </head>
 <body class = "container">
@@ -25,7 +28,43 @@
     <div class="center-align">
       <div id="court-wrapper" style="position:relative; display:inline-block;">
 
-      <img src = "{{url_for('static', filename='Images/badmintonCourt.png')}}" id="court"  >
+<!--SVG loaded inline to allow M.toast thing-->
+      <svg width="600" height="750" viewBox="0 0 320 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="court">
+<rect id="playable_area" width="320" height="480" fill="#1B1B1B"/>
+<g id="Player_zone">
+<rect id="player_rear" x="52" y="372" width="216" height="63" fill="#00A257"/>
+<rect id="player_mid" x="52" y="304" width="216" height="68" fill="#00A257"/>
+<rect id="player_front" x="52" y="239" width="216" height="65" fill="#00A257"/>
+</g>
+<g id="shuttle_zone">
+<rect id="shuttle_front" x="52" y="176" width="216" height="63" fill="#00A257"/>
+<rect id="shuttle_mid" x="52" y="108" width="216" height="68" fill="#00A257"/>
+<rect id="shuttle_rear" x="52" y="43" width="216" height="65" fill="#00A257"/>
+</g>
+<g id="out_of_bounds">
+<rect id="side_out_left" x="33" y="43" width="19" height="392" fill="#00A257"/>
+<rect id="side_out_right" x="268" y="43" width="19" height="392" fill="#00A257"/>
+</g>
+<g id="aesthetic_lines">
+<line id="Line 2" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 180.016)" stroke="white" stroke-width="3"/>
+<line id="Line 4" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.00395248 0.00392154 0.999992 33 46)" stroke="white" stroke-width="3"/>
+<line id="Line 5" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 65.0081)" stroke="white" stroke-width="3"/>
+<line id="Line 6" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 413.008)" stroke="white" stroke-width="3"/>
+<line id="Line 7" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 436.008)" stroke="white" stroke-width="3"/>
+<line id="Line 3" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 298.016)" stroke="white" stroke-width="3"/>
+<line id="Line 4_2" x1="285.5" y1="42" x2="285.5" y2="435" stroke="white" stroke-width="3"/>
+<line id="Line 6_2" x1="159.5" y1="45" x2="159.5" y2="178" stroke="white" stroke-width="3"/>
+<line id="Line 7_2" x1="159.5" y1="297" x2="159.5" y2="433" stroke="white" stroke-width="3"/>
+<line id="Line 5_2" x1="34.5" y1="43" x2="34.5" y2="436" stroke="white" stroke-width="3"/>
+<line id="Line 8" x1="53.5" y1="43" x2="53.5" y2="436" stroke="white" stroke-width="3"/>
+<line id="Line 5_3" x1="266.5" y1="43" x2="266.5" y2="435" stroke="white" stroke-width="3"/>
+<line id="net" x1="53.8" y1="237.525" x2="268" y2="237.525" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 6"/>
+
+</g>
+</g>
+</svg>
+
       </div>
       <div>
         <button id="nextShotBtn" class="btn waves-effect waves-light" style="margin-top: 20px;">Next Shot</button>
@@ -36,7 +75,10 @@
 
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="{{ url_for('static',filename = 'js/videolessMode.js')}}"></script>
+<script>
+console.log('M exists?', typeof M);
+</script>
+<script src="{{ url_for('static',filename = 'JS/videoless.js')}}"></script>
 <script>
     const playerImgURL ="{{ url_for('static', filename='Images/player.png')}}";
     const shuttleImgURL ="{{ url_for('static', filename='Images/shuttle.png')}}";

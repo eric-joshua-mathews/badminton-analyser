@@ -21,11 +21,6 @@ def uploads():
     pass
 
 
-@app.route('/results')
-def results():
-    return render_template('results.html')
-
-
 @app.route('/save_shot', methods=['POST'])
 def save_shot():
     pass

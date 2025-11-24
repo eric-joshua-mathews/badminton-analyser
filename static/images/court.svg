@@ -13,7 +13,7 @@
 </g>
 <g id="out_of_bounds">
 <rect id="side_out_left" x="33" y="43" width="19" height="392" fill="#00A257"/>
-<rect id="side out_right" x="268" y="43" width="19" height="392" fill="#00A257"/>
+<rect id="side_out_right" x="268" y="43" width="19" height="392" fill="#00A257"/>
 </g>
 <g id="aesthetic_lines">
 <line id="Line 2" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 180.016)" stroke="white" stroke-width="3"/>
