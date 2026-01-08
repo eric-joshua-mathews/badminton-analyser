@@ -68,7 +68,7 @@ while ret:
         print(f"Arm detected at {timestamp:.2f} seconds")
         timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)/1000
     cv2.imwrite(f"{OUTPUT_DIR}/frame_{frame_count}.jpg", frame1)
-    cv2.imshow("Motion Detection", frame1)
+    cv2.imshow("Motion Detection", diff) # change to diff to see filtered
     frame1 = frame2
     ret, frame2 = cap.read()
     frame_count+=1
