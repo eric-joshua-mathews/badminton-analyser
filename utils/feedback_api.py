@@ -1,5 +1,5 @@
 import os
-import anthropic
+#import anthropic
 import json
 
 client = anthropic.Client(

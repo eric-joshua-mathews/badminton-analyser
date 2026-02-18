@@ -4,11 +4,14 @@ document.addEventListener("DOMContentLoaded",()=>{
     //court and wrapper
 
 const court = document.getElementById("court");
-const wrapper = document.getElementById("court-wrapper");
+const wrapper = document.getElementById("court-wrapper"); //maybe not needed
+const state = {
+    player:1,
+    playerPos:null,
+    shuttlePos:null,
+    rally : []
+}
 
-//state variables
-let currentPlayer = 1; //1=user 2 = opponent
-let rallyShots = [];
 //court zones
 const courtZones = {
     playable : document.getElementById("playable_area").getBBox(),
@@ -20,41 +23,83 @@ const courtZones = {
     shuttleFront: document.getElementById("shuttle_front").getBBox(),
     sideOutLeft : document.getElementById("side_out_left").getBBox(),
     sideOutRight : document.getElementById("side_out_right").getBBox()
+} //maybe useless
+
+
+court.addEventListener("click",handleLeftClick); //Player
+court.addEventListener("contextmenu",handleRightClick); //Shuttle
+
+function getClickContext (e){
+    //const target=e.target;
+    const group = e.target.closest("g")
+    const rect = e.target.closest("rect")
+    if (!group || !court.contains(group))
+        return null;
+
+    return {group : group , zone: rect.id};
 }
-// function to check SHUTTLE positions out the side or rear or front
-function isOutOfBounds(x,y){
-    if (x < courtZones.sideOutLeft.x || x> courtZones.sideOutRight.x ){
-        return true;
-    }
-    if (y> courtZones.shuttleFront.y + courtZones.shuttleFront.height || y<courtZones.shuttleRear.y ){
-        return true;
-    }
-    return false;
-}
-
-//function to place marker
-function placeMarker(x, y, shuttle) {
-    return undefined;
-}
-
-wrapper.addEventListener("click",handleLeftClick); //Player
-wrapper.addEventListener("contextmenu",handleRightClick); //Shuttle
 
 
-function handleRightClick(e) {
+function handleRightClick(e) { //shuttle
     e.preventDefault()
-    const rect = wrapper.getBoundingClientRect();
-    const x= e.clientX - rect.left;
-    const y = e.clientY-rect.top;
-    const out = isOutOfBounds(x,y);
-    const marker = placeMarker(x,y,"shuttle");
+    const {group, zone} = getClickContext(e)
+    if(!group)
+        return null;
+    state.shuttlePos = group.dataset.zone; //parent -> shuttle or player side
+    const out = isOutOfBounds(state.shuttlePos);
+    //const marker = placeMarker(x,y,"shuttle");
     if (out){
-        M.toast({html: 'The shuttle is out.Pressing any button will mark end of rally, press clear to undo.',classes: 'red darken-2'});
+        M.toast({html: 'Please be aware the shuttle is out.',classes: 'red darken-2'});
     }
 
 }
+function isOutOfBounds(type){
+      return type!=="Shuttle";
+}
 
-function handleLeftClick(e) {
+function handleLeftClick(e) { //player
     e.preventDefault()
+    const {group, zone} = getClickContext(e)
+    if(!group)
+        return null;
+    state.playerPos = group.dataset.zone;
+    const invalidPlayer = isNotValidPlayer(state.playerPos);
+
+//for debugging
+    console.log(type, "- group")
+    console.log(state.playerPos, "- zone")
+
+
+    //place marker
+    if (invalidPlayer){
+        M.toast({html: 'Please be aware the player cannot be there.',classes: 'red darken-2'});
+    }
+}
+function isNotValidPlayer(type){
+        return type==="Shuttle"||type===undefined ;
+
+
+ function handleClick(e){
+     e.preventDefault()
+     const {group , zone} = getClickContext(e)
+     if (!group){
+         return null
+     }
+     if (e.type==="click"){ //right
+         state.playerPos = group.dataset.zone; //CHECK TO SEE IF IT NEEDA BE TYPE
+         const invalidPlayer = isNotValidPlayer(state.playerPos);
+         //add marker
+         if (invalidPlayer){
+            M.toast({html: 'Please be aware the player cannot be there.',classes: 'red darken-2'});
+         }
+     }
+     if (e.type ==="contextmenu"){
+         state.shuttlePos=group.dataset.zone //CHECK TO SEE IF IT NEEDA BE TYPE
+         if (isOutOfBounds(state.shuttlePos)){
+            M.toast({html: 'Please be aware the shuttle is out.',classes: 'red darken-2'});
+         }
+     }
+
+ }
 }
 });
