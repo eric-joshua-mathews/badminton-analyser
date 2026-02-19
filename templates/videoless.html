@@ -18,9 +18,15 @@
             height: auto; /*to keep aspect ratio lol*/
             display: block;
         }
+        .player1-theme{
+            background-color:#e0b79f;
+        }
+        .player2-theme{
+        background-color:#aedbeb;
+        }
     </style>
 </head>
-<body class = "container">
+<body class = "container" id = "appBody">
 
     <h4 class = "center-align">Video-less Mode</h4>
     <p>Left Click = player , Right Click = shuttle landed</p>
@@ -28,7 +34,7 @@
     <div class="center-align">
 
 <!--SVG loaded inline to allow M.toast thing-->
-          <svg width="600" height="750" viewBox="0 0 320 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg id="courtSVG" width="600" height="750" viewBox="0 0 320 480" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g id="court">
     <rect id="playable_area" width="320" height="480" fill="#1B1B1B"/>
     <g id="Player_zone" data-zone = "Player">
@@ -59,6 +65,8 @@
     <line id="Line 8" x1="53.5" y1="43" x2="53.5" y2="436" stroke="white" stroke-width="3"/>
     <line id="Line 5_3" x1="266.5" y1="43" x2="266.5" y2="435" stroke="white" stroke-width="3"/>
     <line id="net" x1="53.8" y1="237.525" x2="268" y2="237.525" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 6"/>
+    <text id="bottomLabel" x="20" y="460" fill="white" font-size="18">Player</text>
+        <text id="topLabel" x="10" y="25" fill="white" font-size="18">Shuttle</text>
 
     </g>
     </g>

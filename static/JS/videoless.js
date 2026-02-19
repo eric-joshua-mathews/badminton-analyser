@@ -2,14 +2,15 @@
 // everything inside DOM to make sure materialize and other elements are fully loaded before JS runs
 document.addEventListener("DOMContentLoaded",()=>{
     //court and wrapper
-
-const court = document.getElementById("court");
+const appBody = document.getElementById("appBody")
+const svg = document.getElementById("courtSVG");
 const state = {
-    player:1,
+    currentPlayer:1,
     playerPos:null,
     shuttlePos:null,
     rally : []
 }
+UpdateTheme();
 
 //court zones
 const courtZones = {
@@ -23,54 +24,175 @@ const courtZones = {
     sideOutLeft : document.getElementById("side_out_left").getBBox(),
     sideOutRight : document.getElementById("side_out_right").getBBox()
 } //maybe useless
+//End rally button
+const endRallyBtn = document.getElementById("EndRallyBtn");
+endRallyBtn.addEventListener("click",EndRallyFn);
+function EndRallyFn(){
+    if (state.rally.length===0){
+        M.toast({html: 'No shots recorded yet.',classes: 'blue darken-1'});
+        return;
+    }
+    const RallyJSON= JSON.stringify(state.rally);
+    console.log("JSON RALLY : "+ RallyJSON);
+    M.toast({html: 'Rally added!',classes: 'green darken-1'});
+    //post to back end
+    state.rally =[]
+    ClearBtnFn();
+}
+//Clear button
+const ClearBtn = document.getElementById("ClearBtn");
+ClearBtn.addEventListener("click",()=>{ClearBtnFn()});
+function ClearBtnFn(){
+    document.getElementById("playerMarker")?.remove();
+    document.getElementById("shuttleMarker")?.remove();
+    state.playerPos=null;
+    state.shuttlePos=null;
+}
 
 
-court.addEventListener("click",handleClick);
-court.addEventListener("contextmenu",handleClick);
+//Update theme and player pos
+function UpdateTheme(){
+    appBody.classList.remove("player1-theme", "player2-theme");
+    if (state.currentPlayer===1){
+    appBody.classList.add("player1-theme")
+    } else{
+    appBody.classList.add("player2-theme")
+    }
+}
+function UpdateLabels(){
+const bottomLabel = document.getElementById("bottomLabel");
+const topLabel = document.getElementById("topLabel");
+if(state.currentPlayer===1){
+bottomLabel.textContent= "Player";
+topLabel.textContent = "Shuttle";
+}else{
+    bottomLabel.textContent= "Shuttle";
+    topLabel.textContent = "Player";
+}
+}
+function PlacePlayerFromZone(zoneObj){
+const zoneId = zoneObj.zoneType.toLowerCase() + "-" + zoneObj.zoneName.toLowerCase();
+const rect = document.getElementById(zoneId);
+if (!rect) return;
+const box
+}
+//Next shot button
+const nextShotBtn = document.getElementById("nextShotBtn");
+nextShotBtn.addEventListener("click",()=>{nextShotBtnFn()});
+function nextShotBtnFn(){
+    //check both are placed
+    if (!state.playerPos||!state.shuttlePos){
+        M.toast({html: 'Please mark both player and shuttle first.',classes: 'blue darken-1'});
+        return;
+    }
+    //check if player location makes sense
+    if (isNotValidPlayerPos(state.playerPos.zoneType)) {
+        M.toast({html: 'Please mark a valid player position.',classes: 'red darken-1'});
+        return
+    }
+    //if shuttle is out, disable button ==> end rally button
+    if (isNotValidShuttlePos(state.shuttlePos.zoneType)){
+        M.toast({html: 'Shuttle is out.Please press end rally or mark again.',classes: 'red darken-1'});
+        return;
+    }
 
+    const prevShuttlePos= {...state.shuttlePos};
+    //push state
+    state.rally.push({
+        playerPos: state.playerPos,
+         shuttlePos: state.shuttlePos,
+         Player: state.currentPlayer});
+    state.currentPlayer===1? state.currentPlayer=2 : state.currentPlayer=1; //switch current player
+    ClearBtnFn();
+    state.playerPos = prevShuttlePos; //set current player's location to old shuttle's location             
+    M.toast({html: 'Shot recorded.',classes: 'green'});
+    UpdateTheme();
+    UpdateLabels();
+    PlacePlayerFromZone(prevShuttlePos);
+    console.log("shot", state.rally);
+}
+
+//mouse handlers
+svg.addEventListener("click",handleClick);
+svg.addEventListener("contextmenu",handleClick);
 function getClickContext (e){
     //const target=e.target;
     const group = e.target.closest("g")
     const rect = e.target.closest("rect")
-    if (!group || !court.contains(group)||!rect)
+    if (!group || !svg.contains(group)||!rect)
         return null;
 
-    return {group : group , zone: rect.id};
+    return {zoneType : group.dataset.zone, zoneName: rect.dataset.type};  //player or shuttle ,,,, rear mid front etc.
 }
-
-function isOutOfBounds(type){
-      return type!=="Shuttle";
+function isNotValidShuttlePos(zoneType){
+    if (state.currentPlayer===1){
+                return !(zoneType==="Shuttle" || zoneType==="Out");
+            } else {
+                return !(zoneType==="Player" || zoneType==="Out");
+            }
 }
-function isNotValidPlayer(type){
-        return type==="Shuttle"||type===undefined ;
+function isNotValidPlayerPos(zoneType){
+        if (state.currentPlayer===1){
+            return zoneType!="Player";
+        } else {
+            return zoneType!="Shuttle";
+        }
 }
 function getSVGCoords(e){
-const pt = court.createSVGPoint();
-pt.x = e.clientX;
-pt.y = e.clientY;
-return pt.matrixTransform(court.getScreenCTM().inverse())
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    svgPt = pt.matrixTransform(svg.getScreenCTM().inverse())
+    return {x:svgPt.x, y:svgPt.y}
+}
+function placeMarker(x,y,type){
+// remove old markers limiting to 1 player and 1 shuttle
+const existing = document.getElementById(type + "Marker");
+if (existing) existing.remove();
+const marker =document.createElementNS("http://www.w3.org/2000/svg","image");
+const size = 24;
+marker.setAttributeNS(null,"href",type==="player" ? "/static/images/player.png" : "/static/images/shuttle.png");
+marker.setAttribute("x",x-size/2);
+marker.setAttribute("y",y-size/2);
+marker.setAttribute("width",size);
+marker.setAttribute("height",size);
+marker.setAttribute("id",type+"Marker");
+marker.classList.add("marker");
+svg.appendChild(marker);
 }
 function handleClick(e){
      e.preventDefault();
      ctx= getClickContext(e)
+     const {x,y} = getSVGCoords(e);
      if (!ctx) return;
-     const {group , zone} = ctx;
-     if (!group){
-         return null
-     }
-     if (e.type==="click"){ //left click
-         state.playerPos = group.dataset.zone; //CHECK TO SEE IF IT NEEDA BE TYPE
-         const invalidPlayer = isNotValidPlayer(state.playerPos);
-         //add marker
+     const {zoneType , zoneName} = ctx;
+
+     //player
+     if (e.type==="click"){
+         state.playerPos = {
+         zoneType: ctx.zoneType,
+         zoneName: ctx.zoneName,
+         x:x,
+         y:y};
+         const invalidPlayer = isNotValidPlayerPos(state.playerPos.zoneType);
          if (invalidPlayer){
             M.toast({html: 'Please be aware the player cannot be there.',classes: 'red darken-2'});
          }
+         placeMarker(x,y,"player");
      }
-     if (e.type ==="contextmenu"){ // right click
-         state.shuttlePos=group.dataset.zone //CHECK TO SEE IF IT NEEDA BE TYPE
-         if (isOutOfBounds(state.shuttlePos)){
+     //shuttle
+     if (e.type ==="contextmenu"){
+         state.shuttlePos={
+         zoneType: ctx.zoneType,
+         zoneName: ctx.zoneName,
+         x:x,
+         y:y};
+
+         const invalidShuttlePos = isNotValidShuttlePos(state.shuttlePos.zoneType);
+         if (invalidShuttlePos){
             M.toast({html: 'Please be aware the shuttle is out.',classes: 'red darken-2'});
          }
+         placeMarker(x,y,"shuttle");
      }
  }
 });
