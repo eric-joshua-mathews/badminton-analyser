@@ -1,4 +1,4 @@
-def guessShot(shuttleLocation,playerLocation,Px,Sx):
+def guess_shot(shuttleLocation,playerLocation,Px,Sx):
     shots={
         ("player_front", "shuttle_front"): "net",
         ("player_front", "shuttle_mid"): "deep push",
@@ -10,16 +10,13 @@ def guessShot(shuttleLocation,playerLocation,Px,Sx):
         ("player_rear", "shuttle_mid"): "smash",
         ("player_rear", "shuttle_rear"): "clear",
     }
-    #shot_type= shots.get((playerLocation, shuttleLocation), "unknown shot") #labelled as unknow for error handling
     shot_type= shots.get((playerLocation, shuttleLocation), "unknown shot")
     #cross or straight +direction
     dx = Sx-Px
+    direction = "straight"
     if abs(dx) > 100:
         if dx<0:
             direction = "cross (left) "
         else:
             direction = "cross (right) "
-
-    else:
-        direction="straight "
-    return shot_type,direction
+    return f"{direction}{shot_type}"

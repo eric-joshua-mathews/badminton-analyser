@@ -8,6 +8,7 @@ const state = {
     currentPlayer:1,
     playerPos:null,
     shuttlePos:null,
+    shotType: null,
     rally : []
 }
 UpdateTheme();
@@ -97,19 +98,58 @@ function nextShotBtnFn(){
     }
 
     const prevShuttlePos= {...state.shuttlePos};
-    //push state
-    state.rally.push({
+    //send to guess Shot function
+
+    let playerType = state.playerPos.zoneType;
+    let shuttleType = state.shuttlePos.zoneType;
+
+    // If Player 2 is hitting, swap meaning
+    if (state.currentPlayer === 2) {
+        playerType = playerType === "Player" ? "Shuttle" : "Player";
+        shuttleType = shuttleType === "Player" ? "Shuttle" : "Player";
+    }
+
+    const playerLocation = playerType.toLowerCase() + "_" + state.playerPos.zoneName.toLowerCase();
+    const shuttleLocation = shuttleType.toLowerCase() + "_" + state.shuttlePos.zoneName.toLowerCase();
+    console.log("player",playerLocation,"11111 shuttle", shuttleLocation);
+    fetch("/guess_shot",{
+       method: "POST",
+       headers: {"Content-Type":"application/json"},
+       body:JSON.stringify({
+           playerLocation:playerLocation,
+           shuttleLocation:shuttleLocation,
+           Px:state.playerPos.x,
+           Sx:state.shuttlePos.x
+           })
+    })
+    .then(res=>res.json())
+    .then(data=>{ console.log("Shot guessed: ",data.shot);
+        M.toast({html: data.shot,classes: 'purple'});
+        //push state
+        state.rally.push({
         playerPos: state.playerPos,
          shuttlePos: state.shuttlePos,
-         Player: state.currentPlayer});
-    state.currentPlayer===1? state.currentPlayer=2 : state.currentPlayer=1; //switch current player
+         Player: state.currentPlayer,
+         shotType:data.shot});
+          //switch current player
+    state.currentPlayer===1? state.currentPlayer=2 : state.currentPlayer=1;
     ClearBtnFn();
-    state.playerPos = prevShuttlePos; //set current player's location to old shuttle's location             
+
+    //set current player's location to old shuttle's location
+    if (prevShuttlePos.zoneType !== "Out")
+        state.playerPos ={
+        zoneType: prevShuttlePos.zoneType,
+         zoneName: prevShuttlePos.zoneName,
+         x:prevShuttlePos.x,
+         y:prevShuttlePos.y};
+
     M.toast({html: 'Shot recorded.',classes: 'green'});
     UpdateTheme();
     UpdateLabels();
-    PlacePlayerFromZone(prevShuttlePos);
     console.log("shot", state.rally);
+    placeMarker(prevShuttlePos.x,prevShuttlePos.y, "player");
+       });
+
 }
 
 //mouse handlers
@@ -173,7 +213,8 @@ function handleClick(e){
          zoneType: ctx.zoneType,
          zoneName: ctx.zoneName,
          x:x,
-         y:y};
+         y:y
+         };
          const invalidPlayer = isNotValidPlayerPos(state.playerPos.zoneType);
          if (invalidPlayer){
             M.toast({html: 'Please be aware the player cannot be there.',classes: 'red darken-2'});
@@ -186,7 +227,8 @@ function handleClick(e){
          zoneType: ctx.zoneType,
          zoneName: ctx.zoneName,
          x:x,
-         y:y};
+         y:y
+         };
 
          const invalidShuttlePos = isNotValidShuttlePos(state.shuttlePos.zoneType);
          if (invalidShuttlePos){
