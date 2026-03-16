@@ -1,93 +1,385 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8" />
     <title>VIDEO-LESS MODE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
-        .marker{border:none;}
-        p {text-align: center;}
-        #court-wrapper{
-            position : relative;
-            display: inline-block;
-            width: 90vw;
-            max-width: none;
-          }
-        #court{
-            width: 100%;
-            height: auto; /*to keep aspect ratio lol*/
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* =====================================================
+           QUICK REFERENCE — every tweak-able value in one place
+           =====================================================
+
+           COLOURS:
+             Page bg:              #1a1a2e
+             Top bar bg:           #16213e
+             Top bar border:       #0f3460
+             Left col bg:          #16213e
+             Col divider:          #0f3460
+             Court wrapper bg:     #111
+             Court wrapper border: #0f3460
+             Right col bg:         #1a1a2e
+             Shot buttons:         #1abc9c  (hover: #16a085)
+             Undo button:          #e74c3c  (hover: #c0392b)
+             Prediction box bg:    #1e2a45
+             Rally history bg:     #16213e
+             Info button:          #1abc9c
+             Stats button:         #e67e22
+             Player 1 tint:        #e0b79f
+             Player 2 tint:        #aedbeb
+
+           SIZES (the ones you'll want to tweak):
+             Top bar height:       70px          → #topBar { height }
+             Court max height:     680px         → #courtSVG { max-height }
+             Left col width:       50%           → #leftCol { width }
+             Right col padding:    20px 24px     → #rightCol { padding }
+             Shot button height:   padding 16px  → .shotBtn { padding }
+             Shot grid columns:    1fr 1fr       → #shotGrid { grid-template-columns }
+             Rally history height: max-height    → #rallyHistoryBox { max-height }
+             Action button height: padding 14px  → .actionBtn { padding }
+           ===================================================== */
+
+        html, body { height: 100%; }
+
+        body {
+            background: #1a1a2e;        /* ← MAIN PAGE BACKGROUND colour */
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;           /* no page-level scroll — each panel scrolls independently */
+        }
+
+        /* ── Top bar ── */
+        #topBar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;            /* ← TOP BAR left/right padding */
+            height: 70px;               /* ← TOP BAR height — increase if title still clips */
+            background: #16213e;        /* ← TOP BAR background colour */
+            border-bottom: 2px solid #0f3460; /* ← TOP BAR bottom border colour */
+        }
+        #topBar h4 {
+            color: #e0e0e0;             /* ← TOP BAR title text colour */
+            font-size: 1.3rem;          /* ← TOP BAR title font size */
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            line-height: 1.4;
+            overflow: visible;
+        }
+        #topBar p {
+            color: #607090;             /* ← TOP BAR subtitle text colour */
+            font-size: 0.72rem;         /* ← TOP BAR subtitle font size */
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* ── Two-column layout ── */
+        #mainLayout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ── LEFT COLUMN (court side) ── */
+        #leftCol {
+            width: 50%;                 /* ← COURT COLUMN width — change to e.g. 45% to make it narrower */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;    /* vertically centres court + buttons */
+            padding: 20px;              /* ← LEFT COLUMN inner padding */
+            gap: 16px;                  /* ← gap between court and the buttons below it */
+            background: #16213e;        /* ← LEFT COLUMN background colour */
+            border-right: 2px solid #0f3460; /* ← divider line between the two columns */
+        }
+
+        #court-wrapper {
+            background: #111;           /* ← COURT WRAPPER background colour */
+            border-radius: 10px;        /* ← COURT WRAPPER corner roundness */
+            padding: 10px;              /* ← COURT WRAPPER inner padding (space around SVG) */
+            border: 2px solid #0f3460;  /* ← COURT WRAPPER border (overridden by player theme glow below) */
+        }
+
+        #courtSVG {
             display: block;
+            /* height is calculated from viewport so court fills available space */
+            /* formula: 100vh − top-bar − court-buttons-row − left-col-padding */
+            height: calc(100vh - 70px - 56px - 60px);
+            width: auto;
+            max-height: 680px;          /* ← COURT MAX HEIGHT — raise this to make court bigger */
         }
-        .player1-theme{
-            background-color:#e0b79f;
+
+        /* Next Shot / Clear / End Rally buttons under the court */
+        #courtButtons {
+            display: flex;
+            gap: 10px;                  /* ← gap between the three court buttons */
+            flex-shrink: 0;
         }
-        .player2-theme{
-        background-color:#aedbeb;
+        #courtButtons .btn {
+            font-size: 0.8rem;          /* ← court button text size */
+            letter-spacing: 1px;
+            height: 36px;               /* ← court button height */
+            line-height: 36px;
+            padding: 0 18px;            /* ← court button left/right padding (affects width) */
+            border-radius: 6px;
         }
+
+        /* ── RIGHT COLUMN (controls side) ── */
+        #rightCol {
+            width: 50%;                 /* ← CONTROLS COLUMN width — should add up to 100% with leftCol */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;                  /* ← vertical gap between sections in right column */
+            padding: 16px 20px;         /* ← RIGHT COLUMN inner padding (top/bottom left/right) */
+            overflow-y: auto;
+            background: #1a1a2e;        /* ← RIGHT COLUMN background colour */
+        }
+
+        /* Small uppercase label above each section */
+        .section-label {
+            font-size: 0.65rem;         /* ← section label text size */
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #607090;             /* ← section label text colour */
+            margin-bottom: 2px;
+        }
+
+        /* ── Shot type button grid ── */
+        #shotGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* ← shot grid columns — "1fr 1fr" = 2 equal cols, "1fr 1fr 1fr" = 3 */
+            gap: 8px;                       /* ← gap between shot buttons */
+        }
+
+        .shotBtn {
+            background: #1abc9c;        /* ← SHOT BUTTON colour */
+            color: #fff;
+            border: none;
+            border-radius: 8px;         /* ← shot button corner roundness */
+            padding: 12px 8px;          /* ← shot button height (top/bottom padding) — reduce to make shorter */
+            font-size: 0.82rem;         /* ← shot button text size */
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .shotBtn:hover { background: #16a085; transform: translateY(-2px); } /* ← SHOT BUTTON hover colour */
+        .shotBtn.undo       { background: #e74c3c; }      /* ← UNDO BUTTON colour */
+        .shotBtn.undo:hover { background: #c0392b; }      /* ← UNDO BUTTON hover colour */
+
+        /* ── Prediction box (shown after Next Shot) ── */
+        #predictionBox {
+            background: #1e2a45;        /* ← PREDICTION BOX background colour */
+            border: 1px solid #2a3a5c;  /* ← PREDICTION BOX border colour */
+            border-radius: 10px;
+            padding: 12px 16px;         /* ← PREDICTION BOX inner padding */
+            display: none;
+            position: relative;
+        }
+        #predictionBox .pred-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #607090;             /* ← PREDICTION BOX "Prediction" label colour */
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #predictionBox .pred-shot {
+            font-size: 1rem;            /* ← PREDICTION BOX shot name text size */
+            color: #e0e0e0;             /* ← PREDICTION BOX shot name text colour */
+            margin: 6px 0 10px;
+            font-weight: 600;
+        }
+        #predictionBox .btn-change {
+            background: #2a3a5c;        /* ← PREDICTION BOX "Change" button colour */
+            color: #ccc;
+            border: none;
+            font-size: 0.75rem;
+            height: 30px;               /* ← PREDICTION BOX "Change" button height */
+            line-height: 30px;
+            padding: 0 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #predictionBox .close-pred {
+            position: absolute;
+            top: 10px; right: 14px;
+            cursor: pointer;
+            color: #607090;             /* ← PREDICTION BOX close ✕ icon colour */
+            font-size: 1rem;
+        }
+
+        /* ── Rally history box ── */
+        #rallyHistoryBox {
+            background: #16213e;        /* ← RALLY HISTORY background colour */
+            border: 1px solid #2a3a5c;  /* ← RALLY HISTORY border colour */
+            border-radius: 10px;
+            padding: 12px 14px;         /* ← RALLY HISTORY inner padding */
+            max-height: 160px;          /* ← RALLY HISTORY max height — increase to show more rows */
+            min-height: 80px;           /* ← RALLY HISTORY min height — so it doesn't collapse when empty */
+            overflow-y: auto;           /* scrolls when entries exceed max-height */
+        }
+        #rallyHistory {
+            font-size: 0.82rem;         /* ← RALLY HISTORY entry text size */
+            color: #a0b0c8;             /* ← RALLY HISTORY entry text colour */
+        }
+        .rallyRow {
+            display: flex;
+            gap: 12px;
+            padding: 4px 0;             /* ← RALLY HISTORY row top/bottom spacing */
+            border-bottom: 1px solid #2a3a5c; /* ← RALLY HISTORY row divider colour */
+        }
+        .moveNum { color: #607090; width: 22px; flex-shrink: 0; } /* ← move number colour */
+        .p1Move  { flex: 1; color: #e0b79f; }   /* ← player 1 move text colour */
+        .p2Move  { flex: 1; color: #aedbeb; }   /* ← player 2 move text colour */
+
+        /* ── Info / Generate Stats buttons ── */
+        #actionButtons {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* ← "1fr 1fr" = side by side, "1fr" = stacked */
+            gap: 10px;                       /* ← gap between the two action buttons */
+            flex-shrink: 0;
+        }
+        .actionBtn {
+            border: none;
+            border-radius: 8px;
+            padding: 13px 8px;          /* ← action button height (top/bottom padding) */
+            font-size: 0.8rem;          /* ← action button text size */
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        .actionBtn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .actionBtn.info  { background: #1abc9c; color: #fff; } /* ← INFO button colour */
+        .actionBtn.stats { background: #e67e22; color: #fff; } /* ← GENERATE STATS button colour */
+
+        /* Player turn indicator — court border glows in player's colour */
+        .player1-theme #court-wrapper { border-color: #e0b79f; box-shadow: 0 0 16px #e0b79f55; } /* ← PLAYER 1 glow colour */
+        .player2-theme #court-wrapper { border-color: #aedbeb; box-shadow: 0 0 16px #aedbeb55; } /* ← PLAYER 2 glow colour */
+
+        .marker { border: none; }
     </style>
 </head>
-<body class = "container" id = "appBody">
+<body id="appBody">
 
-    <h4 class = "center-align">Video-less Mode</h4>
-    <p>Left Click = player , Right Click = shuttle landed</p>
-
-    <div class="center-align">
-
-<!--SVG loaded inline to allow M.toast thing-->
-          <svg id="courtSVG" width="600" height="750" viewBox="0 0 320 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="court">
-    <rect id="playable_area" width="320" height="480" fill="#1B1B1B"/>
-    <g id="Player_zone" data-zone = "Player">
-    <rect id="player_rear" data-type = "rear"  x="52" y="372" width="216" height="63" fill="#00A257"/>
-    <rect id="player_mid" data-type = "mid" x="52" y="304" width="216" height="68" fill="#00A257"/>
-    <rect id="player_front" data-type = "front" x="52" y="239" width="216" height="65" fill="#00A257"/>
-    </g>
-    <g id="shuttle_zone" data-zone = "Shuttle">
-    <rect id="shuttle_front" data-type = "front" x="52" y="176" width="216" height="63" fill="#00A257"/>
-    <rect id="shuttle_mid" data-type = "mid" x="52" y="108" width="216" height="68" fill="#00A257"/>
-    <rect id="shuttle_rear" data-type = "rear" x="52" y="43" width="216" height="65" fill="#00A257"/>
-    </g>
-    <g id="out_of_bounds" data-zone = "Out">
-    <rect id="side_out_left" data-type = "left" x="33" y="43" width="19" height="392" fill="#00A257"/>
-    <rect id="side_out_right" data-type = "right" x="268" y="43" width="19" height="392" fill="#00A257"/>
-    </g>
-    <g id="aesthetic_lines">
-    <line id="Line 2" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 180.016)" stroke="white" stroke-width="3"/>
-    <line id="Line 4" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.00395248 0.00392154 0.999992 33 46)" stroke="white" stroke-width="3"/>
-    <line id="Line 5" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 65.0081)" stroke="white" stroke-width="3"/>
-    <line id="Line 6" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 413.008)" stroke="white" stroke-width="3"/>
-    <line id="Line 7" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 436.008)" stroke="white" stroke-width="3"/>
-    <line id="Line 3" y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 298.016)" stroke="white" stroke-width="3"/>
-    <line id="Line 4_2" x1="285.5" y1="42" x2="285.5" y2="435" stroke="white" stroke-width="3"/>
-    <line id="Line 6_2" x1="159.5" y1="45" x2="159.5" y2="178" stroke="white" stroke-width="3"/>
-    <line id="Line 7_2" x1="159.5" y1="297" x2="159.5" y2="433" stroke="white" stroke-width="3"/>
-    <line id="Line 5_2" x1="34.5" y1="43" x2="34.5" y2="436" stroke="white" stroke-width="3"/>
-    <line id="Line 8" x1="53.5" y1="43" x2="53.5" y2="436" stroke="white" stroke-width="3"/>
-    <line id="Line 5_3" x1="266.5" y1="43" x2="266.5" y2="435" stroke="white" stroke-width="3"/>
-    <line id="net" x1="53.8" y1="237.525" x2="268" y2="237.525" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 6"/>
-    <text id="bottomLabel" x="20" y="460" fill="white" font-size="18">Player</text>
-        <text id="topLabel" x="10" y="25" fill="white" font-size="18">Shuttle</text>
-
-    </g>
-    </g>
-    </svg>
-
-      <div>
-        <button id="nextShotBtn" class="btn waves-effect waves-light" style="margin-top: 20px;">Next Shot</button>
-        <button id="ClearBtn" class="btn waves-effect waves-light red" style="margin-top: 20px;">Clear</button>
-        <button id="EndRallyBtn" class="btn waves-effect waves-light blue" style="margin-top: 20px;">End Rally</button>
-      </div>
+    <!-- Top bar -->
+    <div id="topBar">
+        <div>
+            <h4>VIDEO-LESS MODE</h4>
+            <p>RIGHT CLICK • SHUTTLE &nbsp;|&nbsp; LEFT CLICK • PLAYER</p>
+        </div>
     </div>
 
-</body>
+    <!-- Main layout -->
+    <div id="mainLayout">
+
+        <!-- LEFT: court -->
+        <div id="leftCol">
+            <div id="court-wrapper">
+                <svg id="courtSVG" width="600" height="750" viewBox="0 0 320 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="court">
+                        <rect id="playable_area" width="320" height="480" fill="#1B1B1B"/>
+                        <g id="Player_zone" data-zone="Player">
+                            <rect id="player_rear"  data-type="rear"  x="52" y="372" width="216" height="63" fill="#00A257"/>
+                            <rect id="player_mid"   data-type="mid"   x="52" y="304" width="216" height="68" fill="#00A257"/>
+                            <rect id="player_front" data-type="front" x="52" y="239" width="216" height="65" fill="#00A257"/>
+                        </g>
+                        <g id="shuttle_zone" data-zone="Shuttle">
+                            <rect id="shuttle_front" data-type="front" x="52" y="176" width="216" height="63" fill="#00A257"/>
+                            <rect id="shuttle_mid"   data-type="mid"   x="52" y="108" width="216" height="68" fill="#00A257"/>
+                            <rect id="shuttle_rear"  data-type="rear"  x="52" y="43"  width="216" height="65" fill="#00A257"/>
+                        </g>
+                        <g id="out_of_bounds" data-zone="Out">
+                            <rect id="side_out_left"  data-type="left"  x="33"  y="43" width="19" height="392" fill="#00A257"/>
+                            <rect id="side_out_right" data-type="right" x="268" y="43" width="19" height="392" fill="#00A257"/>
+                        </g>
+                        <g id="aesthetic_lines">
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 180.016)" stroke="white" stroke-width="3"/>
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.00395248 0.00392154 0.999992 33 46)" stroke="white" stroke-width="3"/>
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 65.0081)" stroke="white" stroke-width="3"/>
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 413.008)" stroke="white" stroke-width="3"/>
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33.9961 436.008)" stroke="white" stroke-width="3"/>
+                            <line y1="-1.5" x2="253.006" y2="-1.5" transform="matrix(0.999992 -0.0039216 0.0038909 0.999992 33 298.016)" stroke="white" stroke-width="3"/>
+                            <line x1="285.5" y1="42"  x2="285.5" y2="435" stroke="white" stroke-width="3"/>
+                            <line x1="159.5" y1="45"  x2="159.5" y2="178" stroke="white" stroke-width="3"/>
+                            <line x1="159.5" y1="297" x2="159.5" y2="433" stroke="white" stroke-width="3"/>
+                            <line x1="34.5"  y1="43"  x2="34.5"  y2="436" stroke="white" stroke-width="3"/>
+                            <line x1="53.5"  y1="43"  x2="53.5"  y2="436" stroke="white" stroke-width="3"/>
+                            <line x1="266.5" y1="43"  x2="266.5" y2="435" stroke="white" stroke-width="3"/>
+                            <line id="net" x1="53.8" y1="237.525" x2="268" y2="237.525" stroke="white" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 6"/>
+                            <text id="bottomLabel" x="20" y="460" fill="white" font-size="18">Player</text>
+                            <text id="topLabel"    x="10" y="25"  fill="white" font-size="18">Shuttle</text>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Court action buttons -->
+            <div id="courtButtons">
+                <button id="nextShotBtn" class="btn waves-effect waves-light">Next Shot</button>
+                <button id="ClearBtn"    class="btn waves-effect waves-light red">Clear</button>
+                <button id="EndRallyBtn" class="btn waves-effect waves-light blue">End Rally</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: controls -->
+        <div id="rightCol">
+
+            <!-- Prediction box (hidden until shot guessed) -->
+            <div id="predictionBox">
+                <span class="close-pred" id="closePred">✕</span>
+                <div class="pred-title">Prediction</div>
+                <div class="pred-shot" id="predShotText">The guessed shot is: —</div>
+                <button class="btn-change waves-effect">Change</button>
+            </div>
+
+            <!-- Shot type buttons -->
+            <div class="section-label">Shot Type</div>
+            <div id="shotGrid">
+                <button class="shotBtn">DRIVE</button>
+                <button class="shotBtn">SMASH</button>
+                <button class="shotBtn">DROP</button>
+                <button class="shotBtn">CLEAR</button>
+                <button class="shotBtn">BLOCK</button>
+                <button class="shotBtn">LIFT</button>
+                <button class="shotBtn">NET</button>
+                <button class="shotBtn undo" id="undoBtn">UNDO</button>
+            </div>
+
+            <!-- Rally history -->
+            <div class="section-label">Rally History</div>
+            <div id="rallyHistoryBox">
+                <div id="rallyHistory"></div>
+            </div>
+
+            <!-- Info / Stats buttons -->
+            <div id="actionButtons">
+                <button class="actionBtn info">INFO</button>
+                <button class="actionBtn stats">Generate Stats</button>
+            </div>
+
+        </div>
+    </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-console.log('M exists?', typeof M);
+    console.log('M exists?', typeof M);
+    // Close prediction box
+    document.getElementById('closePred')?.addEventListener('click', () => {
+        document.getElementById('predictionBox').style.display = 'none';
+    });
 </script>
-<script src="{{ url_for('static',filename = 'JS/videoless.js')}}"></script>
+<script src="{{ url_for('static', filename='JS/videoless.js') }}"></script>
 <script>
-    const playerImgURL ="{{ url_for('static', filename='Images/player.png')}}";
-    const shuttleImgURL ="{{ url_for('static', filename='Images/shuttle.png')}}";
+    const playerImgURL  = "{{ url_for('static', filename='Images/player.png') }}";
+    const shuttleImgURL = "{{ url_for('static', filename='Images/shuttle.png') }}";
 </script>
+</body>
 </html>
-

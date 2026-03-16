@@ -60,23 +60,50 @@ function UpdateTheme(){
     appBody.classList.add("player2-theme")
     }
 }
+//////////////////////////////
+function undoShot(){
+   if (state.rally.length===0){
+    M.toast({html:"No shots in rally."});
+    return;
+   }
+   state.rally.pop();
+   updateRallyHistory();
+}
+/////////////////////////
+function updateRallyHistory(){
+    const historyDiv = document.getElementById("rallyHistory");
+    historyDiv.innerHTML="";
+    for(let i=0;i<state.rally.length;i+=2){
+        const moveNum = Math.floor(i/2)+1;
+        const p1= state.rally[i];
+        const p2= state.rally[i+1];
+        const p1Shot= p1 ? p1.shotType:"";
+        const p2Shot= p2 ? p2.shotType:"";
+
+        historyDiv.innerHTML+=`
+        <div class= "rallyRow">
+            <div class="moveNum">${moveNum}</div>
+            <div class="p1Move">${p1Shot}</div>
+            <div class="p2Move">${p2Shot}</div>
+        </div>`;
+    }
+}
+////////////////////////////////////
+
 function UpdateLabels(){
-const bottomLabel = document.getElementById("bottomLabel");
-const topLabel = document.getElementById("topLabel");
-if(state.currentPlayer===1){
-bottomLabel.textContent= "Player";
-topLabel.textContent = "Shuttle";
-}else{
-    bottomLabel.textContent= "Shuttle";
-    topLabel.textContent = "Player";
+    const bottomLabel = document.getElementById("bottomLabel");
+    const topLabel = document.getElementById("topLabel");
+    if(state.currentPlayer===1){
+        bottomLabel.textContent= "Player";
+        topLabel.textContent = "Shuttle";
+    }else{
+        bottomLabel.textContent= "Shuttle";
+        topLabel.textContent = "Player";
+    }
 }
-}
-function PlacePlayerFromZone(zoneObj){
-const zoneId = zoneObj.zoneType.toLowerCase() + "-" + zoneObj.zoneName.toLowerCase();
-const rect = document.getElementById(zoneId);
-if (!rect) return;
-const box
-}
+//Undo buton
+//const undoBtn = document.getElementById("undoBtn")
+//undoBtn.addEventListener("click",()=>{undoBtn()});
 //Next shot button
 const nextShotBtn = document.getElementById("nextShotBtn");
 nextShotBtn.addEventListener("click",()=>{nextShotBtnFn()});
@@ -131,10 +158,10 @@ function nextShotBtnFn(){
          shuttlePos: state.shuttlePos,
          Player: state.currentPlayer,
          shotType:data.shot});
-          //switch current player
+         //switch current player
     state.currentPlayer===1? state.currentPlayer=2 : state.currentPlayer=1;
     ClearBtnFn();
-
+    updateRallyHistory();
     //set current player's location to old shuttle's location
     if (prevShuttlePos.zoneType !== "Out")
         state.playerPos ={
@@ -151,8 +178,9 @@ function nextShotBtnFn(){
        });
 
 }
+//end
 
-//mouse handlers
+//Mouse handlers
 svg.addEventListener("click",handleClick);
 svg.addEventListener("contextmenu",handleClick);
 function getClickContext (e){
