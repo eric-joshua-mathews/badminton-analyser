@@ -13,18 +13,16 @@ const state = {
 }
 UpdateTheme();
 
-//court zones
-const courtZones = {
-    playable : document.getElementById("playable_area").getBBox(),
-    playerRear : document.getElementById("player_rear").getBBox(),
-    playerMid : document.getElementById("player_mid").getBBox(),
-    playerFront: document.getElementById("player_front").getBBox(),
-    shuttleRear : document.getElementById("shuttle_rear").getBBox(),
-    shuttleMid : document.getElementById("shuttle_mid").getBBox(),
-    shuttleFront: document.getElementById("shuttle_front").getBBox(),
-    sideOutLeft : document.getElementById("side_out_left").getBBox(),
-    sideOutRight : document.getElementById("side_out_right").getBBox()
-} //maybe useless
+let currentToast=null
+function ShowToast(html){
+    if (currentToast){
+        currentToast.dismiss();
+    }
+    currentToast=M.toast({
+        html: html,
+        displayLength:2000
+    });
+}
 //End rally button
 const endRallyBtn = document.getElementById("EndRallyBtn");
 endRallyBtn.addEventListener("click",EndRallyFn);
@@ -39,6 +37,7 @@ function EndRallyFn(){
     //post to back end
     state.rally =[]
     ClearBtnFn();
+    updateRallyHistory();
 }
 //Clear button
 const ClearBtn = document.getElementById("ClearBtn");
@@ -49,7 +48,6 @@ function ClearBtnFn(){
     state.playerPos=null;
     state.shuttlePos=null;
 }
-
 
 //Update theme and player pos
 function UpdateTheme(){
@@ -129,7 +127,6 @@ function nextShotBtnFn(){
 
     let playerType = state.playerPos.zoneType;
     let shuttleType = state.shuttlePos.zoneType;
-
     // If Player 2 is hitting, swap meaning
     if (state.currentPlayer === 2) {
         playerType = playerType === "Player" ? "Shuttle" : "Player";
@@ -138,7 +135,7 @@ function nextShotBtnFn(){
 
     const playerLocation = playerType.toLowerCase() + "_" + state.playerPos.zoneName.toLowerCase();
     const shuttleLocation = shuttleType.toLowerCase() + "_" + state.shuttlePos.zoneName.toLowerCase();
-    console.log("player",playerLocation,"11111 shuttle", shuttleLocation);
+    console.log("player",playerLocation,"11111 shuttle", shuttleLocation); //used for debugging
     fetch("/guess_shot",{
        method: "POST",
        headers: {"Content-Type":"application/json"},
@@ -151,7 +148,7 @@ function nextShotBtnFn(){
     })
     .then(res=>res.json())
     .then(data=>{ console.log("Shot guessed: ",data.shot);
-        M.toast({html: data.shot,classes: 'purple'});
+        M.toast({html: data.shot ,classes: 'purple'}); //create a change button in notif
         //push state
         state.rally.push({
         playerPos: state.playerPos,
@@ -170,7 +167,7 @@ function nextShotBtnFn(){
          x:prevShuttlePos.x,
          y:prevShuttlePos.y};
 
-    M.toast({html: 'Shot recorded.',classes: 'green'});
+    //M.toast({html: 'Shot recorded.',classes: 'green'});
     UpdateTheme();
     UpdateLabels();
     console.log("shot", state.rally);
@@ -183,13 +180,12 @@ function nextShotBtnFn(){
 //Mouse handlers
 svg.addEventListener("click",handleClick);
 svg.addEventListener("contextmenu",handleClick);
+
 function getClickContext (e){
-    //const target=e.target;
     const group = e.target.closest("g")
     const rect = e.target.closest("rect")
     if (!group || !svg.contains(group)||!rect)
         return null;
-
     return {zoneType : group.dataset.zone, zoneName: rect.dataset.type};  //player or shuttle ,,,, rear mid front etc.
 }
 function isNotValidShuttlePos(zoneType){
@@ -214,20 +210,21 @@ function getSVGCoords(e){
     return {x:svgPt.x, y:svgPt.y}
 }
 function placeMarker(x,y,type){
-// remove old markers limiting to 1 player and 1 shuttle
-const existing = document.getElementById(type + "Marker");
-if (existing) existing.remove();
-const marker =document.createElementNS("http://www.w3.org/2000/svg","image");
-const size = 24;
-marker.setAttributeNS(null,"href",type==="player" ? "/static/images/player.png" : "/static/images/shuttle.png");
-marker.setAttribute("x",x-size/2);
-marker.setAttribute("y",y-size/2);
-marker.setAttribute("width",size);
-marker.setAttribute("height",size);
-marker.setAttribute("id",type+"Marker");
-marker.classList.add("marker");
-svg.appendChild(marker);
+    // remove old markers limiting to 1 player and 1 shuttle
+    const existing = document.getElementById(type + "Marker");
+    if (existing) existing.remove();
+    const marker =document.createElementNS("http://www.w3.org/2000/svg","image");
+    const size = 24;
+    marker.setAttributeNS(null,"href",type==="player" ? "/static/images/player.png" : "/static/images/shuttle.png");
+    marker.setAttribute("x",x-size/2);
+    marker.setAttribute("y",y-size/2);
+    marker.setAttribute("width",size);
+    marker.setAttribute("height",size);
+    marker.setAttribute("id",type+"Marker");
+    marker.classList.add("marker");
+    svg.appendChild(marker);
 }
+
 function handleClick(e){
      e.preventDefault();
      ctx= getClickContext(e)
