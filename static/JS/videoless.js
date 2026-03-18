@@ -1,45 +1,108 @@
 
 // everything inside DOM to make sure materialize and other elements are fully loaded before JS runs
 document.addEventListener("DOMContentLoaded",()=>{
-    //court and wrapper
-const appBody = document.getElementById("appBody")
+
+//court and wrapper
+const appBody = document.getElementById("appBody");
 const svg = document.getElementById("courtSVG");
+const winnerOverlay=document.getElementById("winnerOverlay");
 const state = {
     currentPlayer:1,
     playerPos:null,
     shuttlePos:null,
     shotType: null,
-    rally : []
+    rally : [],
+    server:1,
+    score:{1:0,2:0}
 }
-UpdateTheme();
+//on load
+updateTheme();
+updateLabels();
+updateServeUI();
+updateScoreUI();
+//calling mouse handlers
+svg.addEventListener("click",handleClick);
+svg.addEventListener("contextmenu",handleClick);
 
-let currentToast=null
-function ShowToast(html){
-    if (currentToast){
-        currentToast.dismiss();
-    }
-    currentToast=M.toast({
-        html: html,
-        displayLength:2000
-    });
+//Serve subroutines
+function setServer(player){
+    state.server=player;
+    state.currentPlayer=player;
+    updateTheme();
+    updateLabels();
+    updateServeUI();
+
 }
+
+const serveCheckbox=document.getElementById("serveCheckbox")
+serveCheckbox.addEventListener("change",(e)=>{setServer(e.target.checked?2:1)})
+
+function updateServeUI() {
+    document.getElementById("serveCheckbox").checked = state.server === 2;
+    document.getElementById("serveDotP1").textContent = state.server === 1 ? "▶" : "";
+    document.getElementById("serveDotP2").textContent = state.server === 2 ? "▶" : "";
+}
+
+////score subroutines
+function updateScoreUI(){
+ document.getElementById("scoreP1").textContent=state.score[1];
+ document.getElementById("scoreP2").textContent=state.score[2];
+}
+
+//finish rally stuff
+function finishRally(winner){
+    state.score[winner]++;
+    updateScoreUI();
+    state.server=winner;
+    state.currentPlayer=winner;
+    updateServeUI();
+    updateTheme();
+    updateLabels();
+    state.rally=[];
+    ClearBtnFn();
+    updateRallyHistory();
+    M.toast({html:`Player ${winner} wins the point`, classes:"green-darken-1"});
+}
+
 //End rally button
 const endRallyBtn = document.getElementById("EndRallyBtn");
 endRallyBtn.addEventListener("click",EndRallyFn);
-function EndRallyFn(){
-    if (state.rally.length===0){
-        M.toast({html: 'No shots recorded yet.',classes: 'blue darken-1'});
+
+function EndRallyFn() {
+    if (state.rally.length === 0 && !state.playerPos && !state.shuttlePos) {
+        M.toast({ html: 'No shots recorded yet.', classes: 'blue darken-1' });
         return;
     }
-    const RallyJSON= JSON.stringify(state.rally);
-    console.log("JSON RALLY : "+ RallyJSON);
-    M.toast({html: 'Rally added!',classes: 'green darken-1'});
-    //post to back end
-    state.rally =[]
-    ClearBtnFn();
-    updateRallyHistory();
+
+    let winner;
+
+    if (state.playerPos && state.shuttlePos) {
+        const isOut = shuttleWrongSide(state.shuttlePos.zoneType);
+        const finalLabel = isOut ? "Out" : "Rally End";
+        state.rally.push({
+            playerPos : state.playerPos,
+            shuttlePos: state.shuttlePos,
+            Player    : state.currentPlayer,
+            shotType  : finalLabel,
+            isFinal   : true,
+        });
+        updateRallyHistory();
+        if (isOut) {
+            // shuttle went out
+            winner = state.currentPlayer === 1 ? 2 : 1;
+        } else {
+            //the player who hit last wins
+            winner = state.currentPlayer;
+        }
+    } else {
+        //whoever hit last in the rally wins
+        const lastShot = state.rally[state.rally.length - 1];
+        winner = lastShot.Player;
+    }
+    finishRally(winner);
 }
-//Clear button
+
+//clear button
 const ClearBtn = document.getElementById("ClearBtn");
 ClearBtn.addEventListener("click",()=>{ClearBtnFn()});
 function ClearBtnFn(){
@@ -49,17 +112,10 @@ function ClearBtnFn(){
     state.shuttlePos=null;
 }
 
-//Update theme and player pos
-function UpdateTheme(){
-    appBody.classList.remove("player1-theme", "player2-theme");
-    if (state.currentPlayer===1){
-    appBody.classList.add("player1-theme")
-    } else{
-    appBody.classList.add("player2-theme")
-    }
-}
-//////////////////////////////
-function undoShot(){
+//undo button -----------------------------------------> fully fix/test/implement
+const undoBtn = document.getElementById("undoBtn");
+undoBtn.addEventListener("click",()=>{UndoBtnFn()});
+function UndoBtnFn(){
    if (state.rally.length===0){
     M.toast({html:"No shots in rally."});
     return;
@@ -67,7 +123,8 @@ function undoShot(){
    state.rally.pop();
    updateRallyHistory();
 }
-/////////////////////////
+
+//rally stuff
 function updateRallyHistory(){
     const historyDiv = document.getElementById("rallyHistory");
     historyDiv.innerHTML="";
@@ -86,9 +143,9 @@ function updateRallyHistory(){
         </div>`;
     }
 }
-////////////////////////////////////
 
-function UpdateLabels(){
+//screen updates//////
+function updateLabels(){
     const bottomLabel = document.getElementById("bottomLabel");
     const topLabel = document.getElementById("topLabel");
     if(state.currentPlayer===1){
@@ -99,9 +156,32 @@ function UpdateLabels(){
         topLabel.textContent = "Player";
     }
 }
-//Undo buton
-//const undoBtn = document.getElementById("undoBtn")
-//undoBtn.addEventListener("click",()=>{undoBtn()});
+
+function updateTheme(){
+    appBody.classList.remove("player1-theme", "player2-theme");
+    if (state.currentPlayer===1){
+    appBody.classList.add("player1-theme")
+    } else{
+    appBody.classList.add("player2-theme")
+    }
+}
+
+function placeMarker(x,y,type){
+    // remove old markers limiting to 1 player and 1 shuttle
+    const existing = document.getElementById(type + "Marker");
+    if (existing) existing.remove();
+    const marker =document.createElementNS("http://www.w3.org/2000/svg","image");
+    const size = 24;
+    marker.setAttributeNS(null,"href",type==="player" ? "/static/images/player.png" : "/static/images/shuttle.png");
+    marker.setAttribute("x",x-size/2);
+    marker.setAttribute("y",y-size/2);
+    marker.setAttribute("width",size);
+    marker.setAttribute("height",size);
+    marker.setAttribute("id",type+"Marker");
+    marker.classList.add("marker");
+    svg.appendChild(marker);
+}
+
 //Next shot button
 const nextShotBtn = document.getElementById("nextShotBtn");
 nextShotBtn.addEventListener("click",()=>{nextShotBtnFn()});
@@ -117,7 +197,7 @@ function nextShotBtnFn(){
         return
     }
     //if shuttle is out, disable button ==> end rally button
-    if (isNotValidShuttlePos(state.shuttlePos.zoneType)){
+    if (shuttleWrongSide(state.shuttlePos.zoneType)){
         M.toast({html: 'Shuttle is out.Please press end rally or mark again.',classes: 'red darken-1'});
         return;
     }
@@ -168,18 +248,39 @@ function nextShotBtnFn(){
          y:prevShuttlePos.y};
 
     //M.toast({html: 'Shot recorded.',classes: 'green'});
-    UpdateTheme();
-    UpdateLabels();
+    updateTheme();
+    updateLabels();
     console.log("shot", state.rally);
     placeMarker(prevShuttlePos.x,prevShuttlePos.y, "player");
        });
 
 }
-//end
 
-//Mouse handlers
-svg.addEventListener("click",handleClick);
-svg.addEventListener("contextmenu",handleClick);
+//position validation
+function shuttleWrongSide(zoneType){
+    if (state.currentPlayer===1){
+                return !(zoneType==="Shuttle");
+            } else {
+                return !(zoneType==="Player");
+            }
+}
+
+function isNotValidPlayerPos(zoneType){
+        if (state.currentPlayer===1){
+            return zoneType!="Player";
+        } else {
+            return zoneType!="Shuttle";
+        }
+}
+
+//svg handling
+function getSVGCoords(e){
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    svgPt = pt.matrixTransform(svg.getScreenCTM().inverse())
+    return {x:svgPt.x, y:svgPt.y}
+}
 
 function getClickContext (e){
     const group = e.target.closest("g")
@@ -188,42 +289,6 @@ function getClickContext (e){
         return null;
     return {zoneType : group.dataset.zone, zoneName: rect.dataset.type};  //player or shuttle ,,,, rear mid front etc.
 }
-function isNotValidShuttlePos(zoneType){
-    if (state.currentPlayer===1){
-                return !(zoneType==="Shuttle" || zoneType==="Out");
-            } else {
-                return !(zoneType==="Player" || zoneType==="Out");
-            }
-}
-function isNotValidPlayerPos(zoneType){
-        if (state.currentPlayer===1){
-            return zoneType!="Player";
-        } else {
-            return zoneType!="Shuttle";
-        }
-}
-function getSVGCoords(e){
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    svgPt = pt.matrixTransform(svg.getScreenCTM().inverse())
-    return {x:svgPt.x, y:svgPt.y}
-}
-function placeMarker(x,y,type){
-    // remove old markers limiting to 1 player and 1 shuttle
-    const existing = document.getElementById(type + "Marker");
-    if (existing) existing.remove();
-    const marker =document.createElementNS("http://www.w3.org/2000/svg","image");
-    const size = 24;
-    marker.setAttributeNS(null,"href",type==="player" ? "/static/images/player.png" : "/static/images/shuttle.png");
-    marker.setAttribute("x",x-size/2);
-    marker.setAttribute("y",y-size/2);
-    marker.setAttribute("width",size);
-    marker.setAttribute("height",size);
-    marker.setAttribute("id",type+"Marker");
-    marker.classList.add("marker");
-    svg.appendChild(marker);
-}
 
 function handleClick(e){
      e.preventDefault();
@@ -231,7 +296,6 @@ function handleClick(e){
      const {x,y} = getSVGCoords(e);
      if (!ctx) return;
      const {zoneType , zoneName} = ctx;
-
      //player
      if (e.type==="click"){
          state.playerPos = {
@@ -254,9 +318,7 @@ function handleClick(e){
          x:x,
          y:y
          };
-
-         const invalidShuttlePos = isNotValidShuttlePos(state.shuttlePos.zoneType);
-         if (invalidShuttlePos){
+         if (shuttleWrongSide(ctx.zoneType)){
             M.toast({html: 'Please be aware the shuttle is out.',classes: 'red darken-2'});
          }
          placeMarker(x,y,"shuttle");

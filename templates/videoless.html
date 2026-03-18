@@ -11,7 +11,7 @@
            QUICK REFERENCE — every tweak-able value in one place
            =====================================================
 
-           COLOURS:
+           COLOURS (adjust):
              Page bg:              #1a1a2e
              Top bar bg:           #16213e
              Top bar border:       #0f3460
@@ -29,7 +29,7 @@
              Player 1 tint:        #e0b79f
              Player 2 tint:        #aedbeb
 
-           SIZES (the ones you'll want to tweak):
+           SIZES (can tweak):
              Top bar height:       70px          → #topBar { height }
              Court max height:     680px         → #courtSVG { max-height }
              Left col width:       50%           → #leftCol { width }
@@ -50,7 +50,97 @@
             height: 100vh;
             overflow: hidden;           /* no page-level scroll — each panel scrolls independently */
         }
+        /* ── Serve toggle (sits below court buttons) ── */
+                #serveToggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .serve-option {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #607090;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+        /* highlight the active side */
+        #serveCheckbox:not(:checked) ~ * #serveP1Label,
+        .serve-option.active { color: #e0e0e0; }
 
+        /* the track */
+        #serveToggle input { display: none; }
+        .slider {
+            width: 44px;             /* ← toggle width */
+            height: 24px;            /* ← toggle height */
+            background: #e0b79f;     /* ← P1 colour when P1 serves */
+            border-radius: 999px;
+            position: relative;
+            transition: background 0.25s;
+        }
+        /* the knob */
+        .slider::after {
+            content: '';
+            position: absolute;
+            width: 18px;             /* ← knob size */
+            height: 18px;
+            background: #1a1a2e;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.25s;
+        }
+        #serveCheckbox:checked + .slider {
+            background: #aedbeb;     /* ← P2 colour when P2 serves */
+        }
+        #serveCheckbox:checked + .slider::after {
+            transform: translateX(20px); /* ← how far knob slides */
+        }
+        /* ── Score panel ── */
+        #scorePanel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: #16213e;        /* ← score panel background colour */
+            border: 1px solid #2a3a5c;
+            border-radius: 10px;
+            padding: 14px 20px;         /* ← score panel inner padding */
+            flex-shrink: 0;
+        }
+        .score-half {
+            flex: 1;
+            text-align: center;
+        }
+        .score-name {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #607090;             /* ← score player name colour */
+            margin-bottom: 6px;
+        }
+        .score-number {
+            font-size: 2.4rem;          /* ← score number size — make bigger/smaller here */
+            font-weight: 700;
+            color: #e0e0e0;             /* ← score number colour */
+            line-height: 1;
+        }
+        .score-divider {
+            font-size: 1.6rem;
+            color: #2a3a5c;             /* ← score divider colour */
+            font-weight: 300;
+            flex-shrink: 0;
+        }
+        /* serve dot — shows next to whoever is serving */
+        .serve-dot {
+            font-size: 0.6rem;
+            color: #1abc9c;             /* ← serve indicator dot colour */
+            vertical-align: middle;
+            margin-left: 2px;
+            transition: opacity 0.2s;
+        }
+        .serve-dot:empty { opacity: 0; }
         /* ── Top bar ── */
         #topBar {
             flex-shrink: 0;
@@ -58,7 +148,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 28px;            /* ← TOP BAR left/right padding */
-            height: 70px;               /* ← TOP BAR height — increase if title still clips */
+            height: 90px;               /* ← TOP BAR height — increase if title still clips */
             background: #16213e;        /* ← TOP BAR background colour */
             border-bottom: 2px solid #0f3460; /* ← TOP BAR bottom border colour */
         }
@@ -327,6 +417,15 @@
                 <button id="ClearBtn"    class="btn waves-effect waves-light red">Clear</button>
                 <button id="EndRallyBtn" class="btn waves-effect waves-light blue">End Rally</button>
             </div>
+            <div id="serveRow">
+                <span class="serve-label">Server:</span>
+                <label id="serveToggle">
+                    <span class="serve-option" id="serveP1Label">P1</span>
+                    <input type="checkbox" id="serveCheckbox">
+                    <span class="slider"></span>
+                    <span class="serve-option" id="serveP2Label">P2</span>
+                </label>
+            </div>
         </div>
 
         <!-- RIGHT: controls -->
@@ -343,13 +442,13 @@
             <!-- Shot type buttons -->
             <div class="section-label">Shot Type</div>
             <div id="shotGrid">
-                <button class="shotBtn">DRIVE</button>
-                <button class="shotBtn">SMASH</button>
-                <button class="shotBtn">DROP</button>
-                <button class="shotBtn">CLEAR</button>
-                <button class="shotBtn">BLOCK</button>
-                <button class="shotBtn">LIFT</button>
-                <button class="shotBtn">NET</button>
+                <button class="shotBtn" id="drive">DRIVE</button>
+                <button class="shotBtn" id="smash">SMASH</button>
+                <button class="shotBtn" id="drop">DROP</button>
+                <button class="shotBtn" id="clear">CLEAR</button>
+                <button class="shotBtn" id="block">BLOCK</button>
+                <button class="shotBtn" id="lift">LIFT</button>
+                <button class="shotBtn" id="net">NET</button>
                 <button class="shotBtn undo" id="undoBtn">UNDO</button>
             </div>
 
@@ -364,7 +463,18 @@
                 <button class="actionBtn info">INFO</button>
                 <button class="actionBtn stats">Generate Stats</button>
             </div>
-
+            <div class="section-label">Score</div>
+            <div id="scorePanel">
+                <div class="score-half">
+                    <div class="score-name">Player 1 <span class="serve-dot" id="serveDotP1">▶</span></div>
+                    <div class="score-number" id="scoreP1">0</div>
+                </div>
+                <div class="score-divider">:</div>
+                <div class="score-half">
+                    <div class="score-name">Player 2 <span class="serve-dot" id="serveDotP2"></span></div>
+                    <div class="score-number" id="scoreP2">0</div>
+                </div>
+            </div>
         </div>
     </div>
 
