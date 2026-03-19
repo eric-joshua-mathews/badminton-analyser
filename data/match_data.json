@@ -1,0 +1,136 @@
+{
+  "rallies": [
+    {
+      "rally": [
+        {
+          "playerPos": {
+            "zoneType": "Shuttle",
+            "zoneName": "mid",
+            "x": 150.4705810546875,
+            "y": 162.5294189453125
+          },
+          "shuttlePos": {
+            "zoneType": "Player",
+            "zoneName": "front",
+            "x": 171.64706420898438,
+            "y": 300.8823547363281
+          },
+          "Player": 2,
+          "shotType": "straightsoft block"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "front",
+            "x": 171.64706420898438,
+            "y": 300.8823547363281
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "front",
+            "x": 169.5294189453125,
+            "y": 228.1764678955078
+          },
+          "Player": 1,
+          "shotType": "straightnet"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Shuttle",
+            "zoneName": "front",
+            "x": 169.5294189453125,
+            "y": 228.1764678955078
+          },
+          "shuttlePos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 79.17646789550781,
+            "y": 420.8823547363281
+          },
+          "Player": 2,
+          "shotType": "straightlift"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 79.17646789550781,
+            "y": 420.8823547363281
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "mid",
+            "x": 58.70588302612305,
+            "y": 142.76470947265625
+          },
+          "Player": 1,
+          "shotType": "straightsmash"
+        }
+      ],
+      "winner": 1,
+      "server": 2,
+      "score": {
+        "p1": 1,
+        "p2": 0
+      }
+    },
+    {
+      "rally": [
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "mid",
+            "x": 145.5294189453125,
+            "y": 310.058837890625
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "mid",
+            "x": 256.3529357910156,
+            "y": 166.76470947265625
+          },
+          "Player": 1,
+          "shotType": "cross (right) drive"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Shuttle",
+            "zoneName": "front",
+            "x": 262.70587158203125,
+            "y": 212.64706420898438
+          },
+          "shuttlePos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 261.29412841796875,
+            "y": 418.058837890625
+          },
+          "Player": 2,
+          "shotType": "straightlift"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 261.29412841796875,
+            "y": 418.058837890625
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "front",
+            "x": 66.47058868408203,
+            "y": 224.64706420898438
+          },
+          "Player": 1,
+          "shotType": "cross (left) drop"
+        }
+      ],
+      "winner": 1,
+      "server": 1,
+      "score": {
+        "p1": 2,
+        "p2": 0
+      }
+    }
+  ]
+}

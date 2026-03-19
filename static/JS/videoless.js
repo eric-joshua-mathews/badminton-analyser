@@ -171,18 +171,31 @@ function updateScoreUI(){
 //finish rally stuff
 function finishRally(winner){
     state.score[winner]++;
+    updateRallyHistory();
+    M.toast({html:`Player ${winner} wins the point`, classes:"green-darken-1"});
+    //append rallies into JSON
+    fetch("/save_shot",{
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body : JSON.stringify({
+            rally: state.rally,
+            winner:winner,
+            server:state.server,
+            score:{p1:state.score[1],p2:state.score[2]}
+        })
+
+    }).then(res=>res.json())
+    .then(data=>{console.log("rally saved",data)});
+    //UI updates
+    state.rally=[];
     updateScoreUI();
     state.server=winner;
     state.currentPlayer=winner;
     updateServeUI();
     updateTheme();
     updateLabels();
-    state.rally=[];
     ClearBtnFn();
-    updateRallyHistory();
-    M.toast({html:`Player ${winner} wins the point`, classes:"green-darken-1"});
 }
-
 //End rally button
 const endRallyBtn = document.getElementById("EndRallyBtn");
 endRallyBtn.addEventListener("click",EndRallyFn);

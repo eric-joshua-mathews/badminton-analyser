@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, json
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+import json
 #from flask_sqlalchemy import SQLAlchemy
 from utils.guess_shot import guess_shot
 import os
-
+match_file="data/match_data.json"
 app = Flask(__name__)
 DATA_FILE = 'data/shots.json'
 
@@ -24,8 +25,20 @@ def uploads():
 
 @app.route('/save_shot', methods=['POST'])
 def save_shot():
-    pass
-
+    data = request.get_json()
+    # load existing match data or create new
+    if os.path.exists(match_file):
+        with open(match_file, "r") as f:
+            content = f.read().strip()
+            match_data = json.loads(content) if content else {"rallies": []}
+    else:
+        match_data = {"rallies": []}
+    # append rally
+    match_data["rallies"].append(data)
+    # save back to file
+    with open(match_file, "w") as f:
+        json.dump(match_data, f, indent=2)
+    return jsonify({"status": "ok"})
 
 @app.route('/end_rally', methods=['POST'])
 def end_rally():
