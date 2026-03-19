@@ -10,7 +10,7 @@ def guess_shot(shuttleLocation,playerLocation,Px,Sx):
         ("player_rear", "shuttle_mid"): "smash",
         ("player_rear", "shuttle_rear"): "clear",
     }
-    shot_type= shots.get((playerLocation, shuttleLocation), "unknown shot")
+    shot_type= shots.get((playerLocation, shuttleLocation), "illegal shot")
     #cross or straight +direction
     dx = Sx-Px
     direction = "straight"

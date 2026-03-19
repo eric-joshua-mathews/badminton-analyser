@@ -15,6 +15,125 @@ const state = {
     server:1,
     score:{1:0,2:0}
 }
+const courtZones = {
+    playerRear  : document.getElementById("player_rear").getBBox(),
+    playerMid   : document.getElementById("player_mid").getBBox(),
+    playerFront : document.getElementById("player_front").getBBox(),
+    shuttleRear : document.getElementById("shuttle_rear").getBBox(),
+    shuttleMid  : document.getElementById("shuttle_mid").getBBox(),
+    shuttleFront: document.getElementById("shuttle_front").getBBox(),
+}
+//preset stuff
+const presetState={
+    active: null,
+    count:0}
+const presets = {
+    SMASH: [
+        { playerZone: "player_rear",  shuttleZone: "shuttle_mid",   p_side: "right", s_side: "right" }, // straight R
+        { playerZone: "player_rear",  shuttleZone: "shuttle_mid",   p_side: "right", s_side: "left"  }, // cross R→L
+        { playerZone: "player_rear",  shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "right" }, // cross L→R
+        { playerZone: "player_rear",  shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "left"  }, // straight L
+    ],
+    CLEAR: [
+        { playerZone: "player_rear",  shuttleZone: "shuttle_rear",  p_side: "right", s_side: "right" },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_rear",  p_side: "right", s_side: "left"  },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_rear",  p_side: "left",  s_side: "right" },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_rear",  p_side: "left",  s_side: "left"  },
+    ],
+    DROP: [
+        { playerZone: "player_rear",  shuttleZone: "shuttle_front", p_side: "right", s_side: "right" },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_front", p_side: "right", s_side: "left"  },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_front", p_side: "left",  s_side: "right" },
+        { playerZone: "player_rear",  shuttleZone: "shuttle_front", p_side: "left",  s_side: "left"  },
+    ],
+    DRIVE: [
+        { playerZone: "player_mid",   shuttleZone: "shuttle_mid",   p_side: "right", s_side: "right" },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_mid",   p_side: "right", s_side: "left"  },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "right" },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "left"  },
+    ],
+    BLOCK: [
+        { playerZone: "player_mid",   shuttleZone: "shuttle_front", p_side: "right", s_side: "right" },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_front", p_side: "right", s_side: "left"  },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_front", p_side: "left",  s_side: "right" },
+        { playerZone: "player_mid",   shuttleZone: "shuttle_front", p_side: "left",  s_side: "left"  },
+    ],
+    LIFT: [
+        { playerZone: "player_front", shuttleZone: "shuttle_rear",  p_side: "right", s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_rear",  p_side: "right", s_side: "left"  },
+        { playerZone: "player_front", shuttleZone: "shuttle_rear",  p_side: "left",  s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_rear",  p_side: "left",  s_side: "left"  },
+    ],
+    NET: [
+        { playerZone: "player_front", shuttleZone: "shuttle_front", p_side: "right", s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_front", p_side: "right", s_side: "left"  },
+        { playerZone: "player_front", shuttleZone: "shuttle_front", p_side: "left",  s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_front", p_side: "left",  s_side: "left"  },
+    ],
+    DEEPPUSH: [
+        { playerZone: "player_front", shuttleZone: "shuttle_mid",   p_side: "right", s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_mid",   p_side: "right", s_side: "left"  },
+        { playerZone: "player_front", shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "right" },
+        { playerZone: "player_front", shuttleZone: "shuttle_mid",   p_side: "left",  s_side: "left"  },
+    ],
+    DEEPDRIVE: [
+    { playerZone: "player_mid", shuttleZone: "shuttle_rear", p_side: "right", s_side: "right" },
+    { playerZone: "player_mid", shuttleZone: "shuttle_rear", p_side: "right", s_side: "left"  },
+    { playerZone: "player_mid", shuttleZone: "shuttle_rear", p_side: "left",  s_side: "right" },
+    { playerZone: "player_mid", shuttleZone: "shuttle_rear", p_side: "left",  s_side: "left"  },
+],
+}//dont open ts is huge
+const Court_X={right: courtZones.playerRear.x+courtZones.playerRear.width*0.90,
+               centre:courtZones.playerRear.x+courtZones.playerRear.width*0.5,
+               left:courtZones.playerRear.x+courtZones.playerRear.width*0.10,
+}
+document.querySelectorAll(".shotBtn[data-preset]").forEach(btn=>{
+    btn.addEventListener("click",()=> handlePreset(btn.dataset.preset,btn));
+});
+function handlePreset(shotName,btn){
+        if (presetState.active!== shotName){
+            //first press of button
+            presetState.active=shotName;
+            presetState.count=0;
+        }
+        const config= presets[shotName][presetState.count%4];//only 4 directions
+        const playerZoneEl = document.getElementById(config.playerZone);
+        const shuttleZoneEl = document.getElementById(config.shuttleZone);
+        const pBBox= playerZoneEl.getBBox();
+        const sBBox=shuttleZoneEl.getBBox();
+        const pX=Court_X[config.p_side];
+        const pY = state.currentPlayer === 2
+            ? sBBox.y + sBBox.height * 0.2   //top
+            : pBBox.y + pBBox.height * 0.8; //bottom
+        const sX=Court_X[config.s_side];
+        const sY = state.currentPlayer === 2
+            ? pBBox.y + pBBox.height * 0.2    //top
+            : sBBox.y + sBBox.height * 0.8;   //bottom
+        //work out zone type from elements praent group
+        const pZoneType = playerZoneEl.closest("g").dataset.zone;
+        const sZoneType = shuttleZoneEl.closest("g").dataset.zone;
+        const pZoneName= playerZoneEl.dataset.type;
+        const sZoneName= shuttleZoneEl.dataset.type;
+        //flip for p2
+        let finalPZoneType = pZoneType;
+        let finalSZoneType = sZoneType;
+        if (state.currentPlayer === 2) {
+            finalPZoneType = pZoneType === "Player" ? "Shuttle" : "Player";
+            finalSZoneType = sZoneType === "Player" ? "Shuttle" : "Player";
+        }
+        //set state
+        state.playerPos  = { zoneType: finalPZoneType, zoneName: pZoneName, x: pX, y: pY };
+        state.shuttlePos = { zoneType: finalSZoneType, zoneName: sZoneName, x: sX, y: sY };
+
+        //place markers
+        placeMarker(pX,pY,"player");
+        placeMarker(sX,sY,"shuttle");
+        //highlight active button
+        document.querySelectorAll(".shotBtn[data-preset]").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        presetState.count++;
+}
+
 //on load
 updateTheme();
 updateLabels();
@@ -77,7 +196,7 @@ function EndRallyFn() {
     let winner;
 
     if (state.playerPos && state.shuttlePos) {
-        const isOut = shuttleWrongSide(state.shuttlePos.zoneType);
+        const isOut = ShuttleWrongSide(state.shuttlePos.zoneType);
         const finalLabel = isOut ? "Out" : "Rally End";
         state.rally.push({
             playerPos : state.playerPos,
@@ -110,6 +229,9 @@ function ClearBtnFn(){
     document.getElementById("shuttleMarker")?.remove();
     state.playerPos=null;
     state.shuttlePos=null;
+    presetState.active=null;
+    presetState.count=0;
+    document.querySelectorAll(".shotBtn[data-preset]").forEach(b=>b.classList.remove("active"));
 }
 
 //undo button -----------------------------------------> fully fix/test/implement
@@ -120,8 +242,16 @@ function UndoBtnFn(){
     M.toast({html:"No shots in rally."});
     return;
    }
+   if (state.currentPlayer===1){
+    state.currentPlayer=2;
+   }else{
+    state.currentPlayer=1;
+   }
    state.rally.pop();
    updateRallyHistory();
+   ClearBtnFn();
+   updateTheme();
+   updateLabels();
 }
 
 //rally stuff
@@ -197,7 +327,7 @@ function nextShotBtnFn(){
         return
     }
     //if shuttle is out, disable button ==> end rally button
-    if (shuttleWrongSide(state.shuttlePos.zoneType)){
+    if (ShuttleWrongSide(state.shuttlePos.zoneType)){
         M.toast({html: 'Shuttle is out.Please press end rally or mark again.',classes: 'red darken-1'});
         return;
     }
@@ -257,7 +387,7 @@ function nextShotBtnFn(){
 }
 
 //position validation
-function shuttleWrongSide(zoneType){
+function ShuttleWrongSide(zoneType){
     if (state.currentPlayer===1){
                 return !(zoneType==="Shuttle");
             } else {
@@ -318,7 +448,7 @@ function handleClick(e){
          x:x,
          y:y
          };
-         if (shuttleWrongSide(ctx.zoneType)){
+         if (ShuttleWrongSide(ctx.zoneType)){
             M.toast({html: 'Please be aware the shuttle is out.',classes: 'red darken-2'});
          }
          placeMarker(x,y,"shuttle");

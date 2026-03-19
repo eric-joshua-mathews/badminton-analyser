@@ -262,7 +262,10 @@
         .shotBtn:hover { background: #16a085; transform: translateY(-2px); } /* ← SHOT BUTTON hover colour */
         .shotBtn.undo       { background: #e74c3c; }      /* ← UNDO BUTTON colour */
         .shotBtn.undo:hover { background: #c0392b; }      /* ← UNDO BUTTON hover colour */
-
+        .shotBtn.active {
+            outline: 3px solid #fff;  /* ← active preset highlight colour */
+            outline-offset: -3px;
+        }
         /* ── Prediction box (shown after Next Shot) ── */
         #predictionBox {
             background: #1e2a45;        /* ← PREDICTION BOX background colour */
@@ -442,13 +445,15 @@
             <!-- Shot type buttons -->
             <div class="section-label">Shot Type</div>
             <div id="shotGrid">
-                <button class="shotBtn" id="drive">DRIVE</button>
-                <button class="shotBtn" id="smash">SMASH</button>
-                <button class="shotBtn" id="drop">DROP</button>
-                <button class="shotBtn" id="clear">CLEAR</button>
-                <button class="shotBtn" id="block">BLOCK</button>
-                <button class="shotBtn" id="lift">LIFT</button>
-                <button class="shotBtn" id="net">NET</button>
+                <button class="shotBtn" data-preset="SMASH">SMASH</button>
+                <button class="shotBtn" data-preset="CLEAR">CLEAR</button>
+                <button class="shotBtn" data-preset="DROP">DROP</button>
+                <button class="shotBtn" data-preset="DRIVE">DRIVE</button>
+                <button class="shotBtn" data-preset="BLOCK">BLOCK</button>
+                <button class="shotBtn" data-preset="LIFT">LIFT</button>
+                <button class="shotBtn" data-preset="NET">NET</button>
+                <button class="shotBtn" data-preset="DEEPPUSH">DEEP PUSH</button>
+                <button class="shotBtn" data-preset="DEEPDRIVE">DEEP DRIVE</button>
                 <button class="shotBtn undo" id="undoBtn">UNDO</button>
             </div>
 
