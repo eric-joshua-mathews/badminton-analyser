@@ -96,16 +96,17 @@ function handlePreset(shotName,btn){
             presetState.active=shotName;
             presetState.count=0;
         }
-        const config= presets[shotName][presetState.count%4];//only 4 directions
-        const playerZoneEl = document.getElementById(config.playerZone);
-        const shuttleZoneEl = document.getElementById(config.shuttleZone);
+        const shotDir= presets[shotName][presetState.count%4];//switch directions
+        const playerZoneEl = document.getElementById(shotDir.playerZone);
+        const shuttleZoneEl = document.getElementById(shotDir.shuttleZone);
+        //coordinate stuff
         const pBBox= playerZoneEl.getBBox();
         const sBBox=shuttleZoneEl.getBBox();
-        const pX=Court_X[config.p_side];
+        const pX=Court_X[shotDir.p_side];
         const pY = state.currentPlayer === 2
             ? sBBox.y + sBBox.height * 0.2   //top
             : pBBox.y + pBBox.height * 0.8; //bottom
-        const sX=Court_X[config.s_side];
+        const sX=Court_X[shotDir.s_side];
         const sY = state.currentPlayer === 2
             ? pBBox.y + pBBox.height * 0.2    //top
             : sBBox.y + sBBox.height * 0.8;   //bottom
@@ -205,9 +206,7 @@ function EndRallyFn() {
         M.toast({ html: 'No shots recorded yet.', classes: 'blue darken-1' });
         return;
     }
-
     let winner;
-
     if (state.playerPos && state.shuttlePos) {
         const isOut = ShuttleWrongSide(state.shuttlePos.zoneType);
         const finalLabel = isOut ? "Out" : "Rally End";
@@ -226,7 +225,7 @@ function EndRallyFn() {
             //the player who hit last wins
             winner = state.currentPlayer;
         }
-    } else {
+    }   else {
         //whoever hit last in the rally wins
         const lastShot = state.rally[state.rally.length - 1];
         winner = lastShot.Player;
@@ -287,7 +286,7 @@ function updateRallyHistory(){
     }
 }
 
-//screen updates//////
+//UI updates//////
 function updateLabels(){
     const bottomLabel = document.getElementById("bottomLabel");
     const topLabel = document.getElementById("topLabel");
@@ -402,9 +401,9 @@ function nextShotBtnFn(){
 //position validation
 function ShuttleWrongSide(zoneType){
     if (state.currentPlayer===1){
-                return !(zoneType==="Shuttle");
+                return zoneType!="Shuttle";
             } else {
-                return !(zoneType==="Player");
+                return zoneType!="Player";
             }
 }
 
@@ -416,13 +415,13 @@ function isNotValidPlayerPos(zoneType){
         }
 }
 
-//svg handling
+//svg + click handling
 function getSVGCoords(e){
     const pt = svg.createSVGPoint();
     pt.x = e.clientX;
     pt.y = e.clientY;
     svgPt = pt.matrixTransform(svg.getScreenCTM().inverse())
-    return {x:svgPt.x, y:svgPt.y}
+    return {x:svgPt.x, y:svgPt.y};
 }
 
 function getClickContext (e){
@@ -467,4 +466,6 @@ function handleClick(e){
          placeMarker(x,y,"shuttle");
      }
  }
+//generate stats button
+document.querySelector(".actionBtn.stats").addEventListener("click", () => {window.location.href = "/stats";});
 });

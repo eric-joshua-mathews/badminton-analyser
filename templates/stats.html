@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Match Stats</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg:        #f4f1ec;       /* ← PAGE BACKGROUND */
+            --surface:   #ffffff;       /* ← CARD BACKGROUND */
+            --border:    #e2ddd7;       /* ← CARD BORDER */
+            --text:      #1a1a1a;       /* ← MAIN TEXT */
+            --muted:     #888070;       /* ← MUTED/LABEL TEXT */
+            --p1:        #c0724a;       /* ← PLAYER 1 ACCENT */
+            --p2:        #4a7fa0;       /* ← PLAYER 2 ACCENT */
+            --p1-light:  #f5e8e0;       /* ← PLAYER 1 LIGHT BG */
+            --p2-light:  #e0eef5;       /* ← PLAYER 2 LIGHT BG */
+            --accent:    #2d2d2d;       /* ← HEADER/ACTIVE ACCENT */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        #topBar {
+            background: var(--accent);      /* ← TOP BAR background */
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #topBar h1 {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        #backBtn {
+            color: #aaa;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        #backBtn:hover { color: #fff; }
+
+        /* ── PLAYER TOGGLE ── */
+        #playerToggleBar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .toggle-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        #playerToggle {
+            display: flex;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+        .toggleBtn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--muted);
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .toggleBtn.active[data-player="1"] {
+            background: var(--p1);
+            color: #fff;
+        }
+        .toggleBtn.active[data-player="2"] {
+            background: var(--p2);
+            color: #fff;
+        }
+
+        /* summary pill strip */
+        #summaryStrip {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        .summary-pill {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+        .summary-pill span {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* ── MAIN CONTENT ── */
+        #content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;    /* ← 2 column grid — change to 1fr for single col */
+            gap: 24px;
+        }
+
+        /* cards that span full width */
+        .card-full { grid-column: 1 / -1; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* stagger card animations */
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.10s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+        .card:nth-child(4) { animation-delay: 0.20s; }
+        .card:nth-child(5) { animation-delay: 0.25s; }
+
+        .card-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 240px;             /* ← CHART HEIGHT — adjust per card */
+        }
+
+        /* ── HEATMAP ── */
+        #heatmapWrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .heatmap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .heatmap-subtitle {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        canvas.heatmap {
+            width: 100% !important;
+            height: 220px !important;   /* ← HEATMAP HEIGHT */
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* ── ERROR ANALYSIS BAR ── */
+        #errorList {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .error-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .error-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            width: 100px;
+            flex-shrink: 0;
+            text-transform: capitalize;
+            font-family: 'DM Mono', monospace;
+        }
+        .error-bar-wrap {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 4px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .error-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .error-count {
+            font-size: 0.72rem;
+            font-family: 'DM Mono', monospace;
+            color: var(--muted);
+            width: 24px;
+            text-align: right;
+        }
+
+        /* ── SCORE PROGRESSION ── */
+        #scoreProgWrap .chart-wrap { height: 180px; }
+
+        /* ── NO DATA STATE ── */
+        .no-data {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top bar -->
+    <div id="topBar">
+        <h1>Match Analysis</h1>
+        <a href="/videoless" id="backBtn">← Back to Match</a>
+    </div>
+
+    <!-- Player toggle + summary -->
+    <div id="playerToggleBar">
+        <span class="toggle-label">Viewing</span>
+        <div id="playerToggle">
+            <button class="toggleBtn active" data-player="1">Player 1</button>
+            <button class="toggleBtn"        data-player="2">Player 2</button>
+        </div>
+        <div id="summaryStrip">
+            <div class="summary-pill">Rallies <span id="totalRallies">—</span></div>
+            <div class="summary-pill">Final Score <span id="finalScore">—</span></div>
+            <div class="summary-pill">Avg Rally Length <span id="avgLength">—</span></div>
+        </div>
+    </div>
+
+    <!-- Charts grid -->
+    <div id="content">
+
+        <!-- Shot distribution pie -->
+        <div class="card">
+            <div class="card-title">Shot Distribution</div>
+            <div class="chart-wrap">
+                <canvas id="shotPieChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Direction breakdown bar -->
+        <div class="card">
+            <div class="card-title">Shot Direction Breakdown</div>
+            <div class="chart-wrap">
+                <canvas id="directionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Error analysis -->
+        <div class="card">
+            <div class="card-title">Error Analysis — Shots Leading to Points Lost</div>
+            <div id="errorList"></div>
+        </div>
+
+        <!-- Win rate by shot -->
+        <div class="card">
+            <div class="card-title">Win Rate by Shot Type (%)</div>
+            <div class="chart-wrap">
+                <canvas id="winRateChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Heatmaps full width -->
+        <div class="card card-full">
+            <div class="card-title">Position Heatmaps</div>
+            <div id="heatmapWrap">
+                <div class="heatmap-container">
+                    <div class="heatmap-subtitle">Player Position</div>
+                    <canvas id="playerHeatmap" class="heatmap"></canvas>
+                </div>
+                <div class="heatmap-container">
+                    <div class="heatmap-subtitle">Shuttle Landing</div>
+                    <canvas id="shuttleHeatmap" class="heatmap"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rally length bar — full width -->
+        <div class="card card-full" id="scoreProgWrap">
+            <div class="card-title">Rally Length Distribution</div>
+            <div class="chart-wrap">
+                <canvas id="rallyLengthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Score progression — full width -->
+        <div class="card card-full">
+            <div class="card-title">Score Progression</div>
+            <div class="chart-wrap">
+                <canvas id="scoreProgChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    // Jinja must stay in HTML — stats.js reads this as a global variable
+    const stats = {{ stats | tojson }};
+
+    // guards for missing data until Python functions are written
+    if (!stats.p1) stats.p1 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };
+    if (!stats.p2) stats.p2 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };
+    if (!stats.score_progression) stats.score_progression = [[], []];
+    if (!stats.total_rallies) stats.total_rallies = 0;
+</script>
+<script src="{{ url_for('static', filename='JS/stats.js') }}"></script>
+</body>
+</html>

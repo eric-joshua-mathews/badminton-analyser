@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import json
 #from flask_sqlalchemy import SQLAlchemy
 from utils.guess_shot import guess_shot
+from utils.generate_stats import generate_stats
 import os
 match_file="data/match_data.json"
 app = Flask(__name__)
@@ -55,6 +56,12 @@ def _route():
   result = guess_shot(shuttleLocation,playerLocation,Px,Sx)
   return jsonify({"shot":result})
 
+@app.route('/stats')
+def stats():
+    stats = generate_stats()
+    if not stats:
+        return "No match data found", 404
+    return render_template('stats.html', stats=stats)
 
 if __name__ == '__main__':
     app.run(debug=True)
