@@ -336,7 +336,7 @@
     </div>
 
 <script>
-    // Jinja must stay in HTML — stats.js reads this as a global variable
+    // Jinja must stay in HTML
     const stats = {{ stats | tojson }};
 
     // guards for missing data until Python functions are written

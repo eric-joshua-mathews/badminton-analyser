@@ -7,7 +7,7 @@ const SHOT_PALETTE = [
 ];
 
 let currentPlayer = 1;
-let charts = {};   // store chart instances so we can destroy/redraw on toggle
+let charts = {};   // store chart instances to redraw on toggle
 
 // PLAYER TOGGLE
 document.querySelectorAll('.toggleBtn').forEach(btn => {
@@ -128,7 +128,7 @@ function renderDirectionChart() {
 }
 
 
-//ERROR ANALYSIS (custom bar rows)
+//ERROR ANALYSIS
 function renderErrorAnalysis() {
     const data = playerData().error_analysis;
     const el   = document.getElementById('errorList');
@@ -256,17 +256,18 @@ function renderHeatmaps() {
 function renderRallyLength() {
     destroyChart('rallyLength');
     const data = stats.rally_lengths;
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0)
+        return;
 
     const labels = data.map(r => `Rally ${r.rally_num}`);
-    const values = data.map(r => r.length);
-
+    const values = data.map(r => parseInt(r.shots));
+    console.log(stats.rally_lengths) ////-----------------------------------------------------------------------
     charts['rallyLength'] = new Chart(document.getElementById('rallyLengthChart'), {
         type: 'bar',
         data: {
             labels,
             datasets: [{
-                label: 'Number of Rallies',
+                label: 'Number of shots',
                 data: values,
                 backgroundColor: '#2d2d2d22',
                 borderColor: '#2d2d2d',
@@ -279,7 +280,7 @@ function renderRallyLength() {
             maintainAspectRatio: false,
             scales: {
                 x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070' }, grid: { display: false } },
-                y: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070', stepSize: 1 }, grid: { color: '#f0ece6' } }
+                y: {beginsAtZero: true, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070', stepSize: 1 ,precision:0}, grid: { color: '#f0ece6' } }
             },
             plugins: { legend: { display: false } }
         }
@@ -306,7 +307,7 @@ function renderScoreProgression() {
                     data: p1,
                     borderColor: P1_COL,
                     backgroundColor: P1_COL + '22',
-                    tension: 0.3,
+                    tension: 0,
                     pointRadius: 4,
                     fill: true,
                 },
@@ -315,7 +316,7 @@ function renderScoreProgression() {
                     data: p2,
                     borderColor: P2_COL,
                     backgroundColor: P2_COL + '22',
-                    tension: 0.3,
+                    tension: 0,
                     pointRadius: 4,
                     fill: true,
                 }
@@ -332,10 +333,7 @@ function renderScoreProgression() {
         }
     });
 }
-
-
 // RENDER ALL
-
 function renderAll() {
     renderShotPie();
     renderDirectionChart();
@@ -345,7 +343,6 @@ function renderAll() {
     renderRallyLength();
     renderScoreProgression();
 }
-
 // on load
 renderSummary();
 renderAll();
