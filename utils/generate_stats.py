@@ -1,6 +1,6 @@
 import json
 import os
-from contextlib import nullcontext
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 match_file=os.path.join(BASE_DIR,"data","match_data.json")
@@ -20,12 +20,25 @@ def parse_shot_type(shot):
     else:
         direction = "straight"
     return (direction,shot)
-def shotDirectionBreakDown(match_file,shot):
-    direction=[]
-    straight = 0
-    cross_right=0
-    cross_left=0
-    parse_shot_type(shot)
+
+def shotDirectionBreakDown(rallies,player):
+    breakdown={}
+    for rally in rallies:
+        for shot in rally["rally"]:
+            if shot["Player"]==player:
+                if not shot.get("isFinal",False):
+                    direction,name=parse_shot_type(shot["shotType"])
+                    if direction is not None:
+                        if name not in breakdown:
+                            breakdown[name]={"straight":0,"cross (left)":0,"cross (right)":0}
+                        if "left" in direction:
+                            breakdown[name]["cross (left)"]+=1
+                        elif "right" in direction:
+                            breakdown[name]["cross (right)"]+=1
+                        else:
+                            breakdown[name]["straight"]+=1
+    return breakdown
+
 
 
 def load_match_data(match_file):
@@ -42,12 +55,16 @@ def generate_stats():
     if not data:
         return None
     rallies=data["rallies"]
-    return{"rally_lengths":rally_length(rallies),"score_progression":score_progression()}
+    return{"rally_lengths":rally_length(rallies),
+           "score_progression":score_progression(),
+           "p1":{"direction_breakdown":shotDirectionBreakDown(rallies,1)},
+           "p2":{"direction_breakdown":shotDirectionBreakDown(rallies,2)}
+           }
 
 def rally_length(rallies):
     lengths=[]
     for i,rally in enumerate(rallies):
-        lengths.append({"rally_num":i+1,"shots":len(rally["rally"])})
+        lengths.append({"rally_num":i+1,"length":len(rally["rally"])})
     return lengths
 def score_progression():
     p1Score=[]
@@ -80,6 +97,7 @@ def main():
             py = shot["playerPos"]["y"]
             sy = shot["shuttlePos"]["y"]
 
-    return generate_stats()
+
+    return generate_stats(),
 if __name__=="__main__":
     main()

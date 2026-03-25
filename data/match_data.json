@@ -273,6 +273,80 @@
         "p1": 2,
         "p2": 3
       }
+    },
+    {
+      "rally": [
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "mid",
+            "x": 188.58824157714844,
+            "y": 318.5294189453125
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "mid",
+            "x": 70.70587921142578,
+            "y": 161.8235321044922
+          },
+          "Player": 1,
+          "shotType": "cross (left) drive"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Shuttle",
+            "zoneName": "mid",
+            "x": 70.70587921142578,
+            "y": 161.8235321044922
+          },
+          "shuttlePos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 251.41175842285156,
+            "y": 420.1764831542969
+          },
+          "Player": 2,
+          "shotType": "cross (right) deep drive"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 251.41175842285156,
+            "y": 420.1764831542969
+          },
+          "shuttlePos": {
+            "zoneType": "Shuttle",
+            "zoneName": "rear",
+            "x": 252.8235321044922,
+            "y": 58.05882263183594
+          },
+          "Player": 1,
+          "shotType": "straightclear"
+        },
+        {
+          "playerPos": {
+            "zoneType": "Shuttle",
+            "zoneName": "rear",
+            "x": 252.8235321044922,
+            "y": 58.05882263183594
+          },
+          "shuttlePos": {
+            "zoneType": "Player",
+            "zoneName": "rear",
+            "x": 62.94117736816406,
+            "y": 420.8823547363281
+          },
+          "Player": 2,
+          "shotType": "cross (left) clear"
+        }
+      ],
+      "winner": 2,
+      "server": 1,
+      "score": {
+        "p1": 0,
+        "p2": 1
+      }
     }
   ]
 }
