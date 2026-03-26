@@ -131,31 +131,29 @@ function renderDirectionChart() {
 //ERROR ANALYSIS
 function renderErrorAnalysis() {
     const data = playerData().error_analysis;
-    const el   = document.getElementById('errorList');
-    el.innerHTML = '';
-
-    if (!data || Object.keys(data).length === 0) {
-        el.innerHTML = '<div class="no-data">No error data yet</div>';
-        return;
+    if (!data||Object.keys(data).length===0){
+        document.getElementById('errorChart').innerHTML='<div class="no-data">No error data yet</div>';
     }
-
-    const max = Math.max(...Object.values(data));
-    const col = playerColour();
-
-    // sort by count descending
-    Object.entries(data)
-        .sort((a, b) => b[1] - a[1])
-        .forEach(([shot, count]) => {
-            const pct = (count / max * 100).toFixed(0);
-            el.innerHTML += `
-            <div class="error-row">
-                <div class="error-label">${shot}</div>
-                <div class="error-bar-wrap">
-                    <div class="error-bar" style="width:${pct}%; background:${col}"></div>
-                </div>
-                <div class="error-count">${count}</div>
-            </div>`;
-        });
+    charts['errorAnalysis'] = new Chart(document.getElementById('errorChart'),{
+        type:'pie',
+        datasets:[{
+            labels:Object.values(data).map(k=>k+' court'),
+            backgroundColor:[playerColour()+'ff',playerColour()+'aa',playerColour()+'55'],
+            borderWidth:2,
+            borderColor:'#fff'}],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    positions: 'right',
+                    labels: {font: {family: 'DM Sans', size: 11}, color: '#888070'},
+                    boxWidth: 12,
+                    padding: 10
+                }
+            }
+        }
+    });
 }
 
 

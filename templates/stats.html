@@ -196,44 +196,6 @@
             border: 1px solid var(--border);
         }
 
-        /* ── ERROR ANALYSIS BAR ── */
-        #errorList {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .error-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .error-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            width: 100px;
-            flex-shrink: 0;
-            text-transform: capitalize;
-            font-family: 'DM Mono', monospace;
-        }
-        .error-bar-wrap {
-            flex: 1;
-            background: var(--bg);
-            border-radius: 4px;
-            height: 10px;
-            overflow: hidden;
-        }
-        .error-bar {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.6s ease;
-        }
-        .error-count {
-            font-size: 0.72rem;
-            font-family: 'DM Mono', monospace;
-            color: var(--muted);
-            width: 24px;
-            text-align: right;
-        }
 
         /* ── SCORE PROGRESSION ── */
         #scoreProgWrap .chart-wrap { height: 180px; }
@@ -290,8 +252,8 @@
 
         <!-- Error analysis -->
         <div class="card">
-            <div class="card-title">Error Analysis — Shots Leading to Points Lost</div>
-            <div id="errorList"></div>
+            <div class="card-title">Error Analysis — distribution of errors made from each zone</div>
+            <div id="errorChart"></div>
         </div>
 
         <!-- Win rate by shot -->
