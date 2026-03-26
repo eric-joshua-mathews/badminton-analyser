@@ -234,7 +234,7 @@
     <!-- Charts grid -->
     <div id="content">
 
-        <!-- Shot distribution pie -->
+        <!-- Shot distribution bar -->
         <div class="card">
             <div class="card-title">Shot Distribution</div>
             <div class="chart-wrap">
@@ -253,7 +253,12 @@
         <!-- Error analysis -->
         <div class="card">
             <div class="card-title">Error Analysis — distribution of errors made from each zone</div>
-            <div id="errorChart"></div>
+            <div>
+                <div id="chart-wrap">
+                    <canvas id="errorPie"></canvas>
+                </div>
+
+            </div>
         </div>
 
         <!-- Win rate by shot -->

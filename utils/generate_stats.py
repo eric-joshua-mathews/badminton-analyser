@@ -20,7 +20,7 @@ def parse_shot_type(shot):
     else:
         direction = "straight"
     return (direction,shot)
-
+#shot direction
 def shotDirectionBreakDown(rallies,player):
     breakdown={}
     for rally in rallies:
@@ -38,9 +38,18 @@ def shotDirectionBreakDown(rallies,player):
                         else:
                             breakdown[name]["straight"]+=1
     return breakdown
-
-
-
+#erorAnalytics
+def error_analysis(rallies,player):
+    errors = {"front":0,"mid":0,"rear":0}
+    for rally in rallies:
+        if rally["winner"]!=player:
+            for shot in rally["rally"]:
+                if shot.get("isFinal",False) and shot["Player"]==player:
+                    region = shot["playerPos"]["zoneName"]
+                    if region in errors:
+                        errors[region]+=1
+    return errors
+#handle json
 def load_match_data(match_file):
     if not os.path.exists(match_file):
         return None
@@ -49,7 +58,7 @@ def load_match_data(match_file):
         if not content:
             return None
         return json.loads(content)
-
+#return point
 def generate_stats():
     data=load_match_data(match_file)
     if not data:
@@ -57,15 +66,16 @@ def generate_stats():
     rallies=data["rallies"]
     return{"rally_lengths":rally_length(rallies),
            "score_progression":score_progression(),
-           "p1":{"direction_breakdown":shotDirectionBreakDown(rallies,1)},
-           "p2":{"direction_breakdown":shotDirectionBreakDown(rallies,2)}
+           "p1":{"direction_breakdown":shotDirectionBreakDown(rallies,1),"error_analysis":error_analysis(rallies,1)},
+           "p2":{"direction_breakdown":shotDirectionBreakDown(rallies,2),"error_analysis":error_analysis(rallies,2)}
            }
-
+#rally length
 def rally_length(rallies):
     lengths=[]
     for i,rally in enumerate(rallies):
         lengths.append({"rally_num":i+1,"length":len(rally["rally"])})
     return lengths
+#score prog
 def score_progression():
     p1Score=[]
     p2Score=[]
@@ -74,7 +84,6 @@ def score_progression():
     for rally in rallies:
         p1Score.append(rally["score"]["p1"])
         p2Score.append(rally["score"]["p2"])
-    print(f"dbuebu: {[p1Score,p2Score]}")
     return [p1Score,p2Score]
 def main():
     data = load_match_data(match_file)

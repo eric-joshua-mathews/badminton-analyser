@@ -131,30 +131,40 @@ function renderDirectionChart() {
 //ERROR ANALYSIS
 function renderErrorAnalysis() {
     const data = playerData().error_analysis;
+    destroyChart('errorAnalysis')
     if (!data||Object.keys(data).length===0){
         document.getElementById('errorChart').innerHTML='<div class="no-data">No error data yet</div>';
+        return;
     }
-    charts['errorAnalysis'] = new Chart(document.getElementById('errorChart'),{
-        type:'pie',
-        datasets:[{
-            labels:Object.values(data).map(k=>k+' court'),
-            backgroundColor:[playerColour()+'ff',playerColour()+'aa',playerColour()+'55'],
-            borderWidth:2,
-            borderColor:'#fff'}],
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    positions: 'right',
-                    labels: {font: {family: 'DM Sans', size: 11}, color: '#888070'},
-                    boxWidth: 12,
-                    padding: 10
+        charts['errorAnalysis'] = new Chart(document.getElementById('errorPie'),{
+            type:'pie',
+            data:{
+
+                labels:Object.keys(data).map(k=>k+' court'),
+                datasets:[{
+                    data:Object.values(data),
+                    backgroundColor:[
+                        playerColour()+'ff',
+                        playerColour()+'aa',
+                        playerColour()+'55'],
+                    borderWidth:2,
+                    borderColor:'#fff'}]
+            },
+            options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {font: {family: 'DM Sans', size: 11}, color: '#888070'},
+                            boxWidth: 12,
+                            padding: 10
+                        }
+                    }
                 }
-            }
-        }
-    });
-}
+
+        });
+    }
 
 
 //WIN RATE BY SHOT
@@ -250,7 +260,7 @@ function renderHeatmaps() {
 }
 
 
-//RALLY LENGTH BAR
+//RALLY LENGTH BAR - fin dont need to touch unless  rally_length is touched
 function renderRallyLength() {
     destroyChart('rallyLength');
     const data = stats.rally_lengths;
@@ -258,7 +268,7 @@ function renderRallyLength() {
         return;
 
     const labels = data.map(r => `Rally ${r.rally_num}`);
-    const values = data.map(r => parseInt(r.shots));
+    const values = data.map(r => parseInt(r.length)); // rmeber to change this depending on the return name of the rally Length functions
     console.log(stats.rally_lengths) ////-----------------------------------------------------------------------
     charts['rallyLength'] = new Chart(document.getElementById('rallyLengthChart'), {
         type: 'bar',
@@ -278,7 +288,7 @@ function renderRallyLength() {
             maintainAspectRatio: false,
             scales: {
                 x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070' }, grid: { display: false } },
-                y: {beginsAtZero: true, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070', stepSize: 1 ,precision:0}, grid: { color: '#f0ece6' } }
+                y: {beginAtZero: true, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888070', stepSize: 1 ,precision:0}, grid: { color: '#f0ece6' } }
             },
             plugins: { legend: { display: false } }
         }
@@ -287,7 +297,6 @@ function renderRallyLength() {
 
 
 // SCORE PROGRESSION LINE
-
 function renderScoreProgression() {
     destroyChart('scoreProg');
     const [p1, p2] = stats.score_progression;

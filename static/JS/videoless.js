@@ -215,6 +215,7 @@ function EndRallyFn() {
             shuttlePos: state.shuttlePos,
             Player    : state.currentPlayer,
             shotType  : finalLabel,
+            endReason : finalLabel, //added endReason for stats
             isFinal   : true,
         });
         updateRallyHistory();
