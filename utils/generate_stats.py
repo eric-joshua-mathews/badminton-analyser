@@ -38,6 +38,38 @@ def shotDirectionBreakDown(rallies,player):
                         else:
                             breakdown[name]["straight"]+=1
     return breakdown
+#shots by winRate
+def win_rate_by_shot(rallies,player):
+    stats={}
+    for rally in rallies:
+        shot_names=set()
+        for shot in rally["rally"]:
+            if shot["Player"]==player and not shot.get("isFinal",False):
+                _,name=parse_shot_type(shot["shotType"])
+                shot_names.add(name)
+        won = rally["winner"]==player
+        for name in shot_names:
+            if name not in stats:
+                stats[name]={"wins":0,"total":0}
+            stats[name]["total"]+=1
+            if won:
+                stats[name]["wins"]+=1
+    for name in stats:
+        total=stats[name]["total"]
+        if total>0:
+            stats[name]["rate"]=round(stats[name]["wins"]/total *100,1)
+        else:
+            stats[name]["rate"]=0
+    return stats
+#shot distribution
+def shot_distribution(rallies,player):
+    counts={}
+    for rally in rallies:
+        for shot in rally["rally"]:
+            if shot["Player"]==player and not shot.get("isFinal",False):
+                _,name=parse_shot_type(shot["shotType"])
+                counts[name]=counts.get(name,0)+1
+    return counts
 #erorAnalytics
 def error_analysis(rallies,player):
     errors = {"front":0,"mid":0,"rear":0}
@@ -66,8 +98,17 @@ def generate_stats():
     rallies=data["rallies"]
     return{"rally_lengths":rally_length(rallies),
            "score_progression":score_progression(),
-           "p1":{"direction_breakdown":shotDirectionBreakDown(rallies,1),"error_analysis":error_analysis(rallies,1)},
-           "p2":{"direction_breakdown":shotDirectionBreakDown(rallies,2),"error_analysis":error_analysis(rallies,2)}
+           "p1":{
+               "direction_breakdown":shotDirectionBreakDown(rallies,1),
+               "error_analysis":error_analysis(rallies,1),
+               "win_rate_by_shot":win_rate_by_shot(rallies,1),
+               "shot_distribution":shot_distribution(rallies,1)
+           },
+           "p2":{
+               "direction_breakdown":shotDirectionBreakDown(rallies,2),
+               "error_analysis":error_analysis(rallies,2)},
+               "win_rate_by_shot":win_rate_by_shot(rallies,2),
+               "shot_distribution":shot_distribution(rallies,2)
            }
 #rally length
 def rally_length(rallies):
