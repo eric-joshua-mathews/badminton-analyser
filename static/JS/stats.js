@@ -207,57 +207,8 @@ function renderWinRate() {
 }
 
 
-//  HEATMAPS (drawn on canvas manually)
-function drawHeatmap(canvasId, points, colour) {
-    const canvas = document.getElementById(canvasId);
-    const ctx    = canvas.getContext('2d');
+//heat maps deleted
 
-    // set actual pixel dimensions
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
-    // draw court background
-    ctx.fillStyle = '#f4f1ec';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // draw court outline
-    ctx.strokeStyle = '#ccc5bb';
-    ctx.lineWidth   = 1.5;
-    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-
-    // draw net line
-    ctx.beginPath();
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = '#aaa';
-    ctx.moveTo(10, canvas.height / 2);
-    ctx.lineTo(canvas.width - 10, canvas.height / 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    if (!points || points.length === 0) return;
-
-    // draw each point as a blurred circle
-    points.forEach(p => {
-        const x = 10 + p.x * (canvas.width  - 20);
-        const y = 10 + p.y * (canvas.height - 20);
-        const r = 18;   /* ← heatmap point radius */
-
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-        grad.addColorStop(0,   colour + '66');   /* ← inner opacity */
-        grad.addColorStop(1,   colour + '00');   /* ← outer (transparent) */
-
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-    });
-}
-
-function renderHeatmaps() {
-    const data = playerData();
-    drawHeatmap('playerHeatmap',  data.position_heatmap, playerColour());
-    drawHeatmap('shuttleHeatmap', data.shuttle_heatmap,  playerColour());
-}
 
 
 //RALLY LENGTH BAR - fin dont need to touch unless  rally_length is touched
@@ -340,15 +291,19 @@ function renderScoreProgression() {
         }
     });
 }
+function renderAiFeedback() {
+    document.getElementById('aiFeedbackText').textContent = aiFeedback[currentPlayer];
+}
 // RENDER ALL
 function renderAll() {
     renderShotPie();
     renderDirectionChart();
     renderErrorAnalysis();
     renderWinRate();
-    renderHeatmaps();
+    //heatmaps deleted replacing with AI api feedback :3
     renderRallyLength();
     renderScoreProgression();
+    renderAiFeedback();
 }
 // on load
 renderSummary();

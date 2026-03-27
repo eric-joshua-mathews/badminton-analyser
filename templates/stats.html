@@ -171,29 +171,15 @@
             height: 240px;             /* ← CHART HEIGHT — adjust per card */
         }
 
-        /* ── HEATMAP ── */
-        #heatmapWrap {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        #aiFeedback {
+            font-family: 'DM Sans';
+            font-size: 14px;
+            line-height: 1.6;
+            color: #5f574f;
+            padding: 10px 0;
         }
-        .heatmap-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .heatmap-subtitle {
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
-        canvas.heatmap {
-            width: 100% !important;
-            height: 220px !important;   /* ← HEATMAP HEIGHT */
-            border-radius: 8px;
-            border: 1px solid var(--border);
+        .full-width {
+            grid-column: span 2;
         }
 
 
@@ -269,19 +255,10 @@
             </div>
         </div>
 
-        <!-- Heatmaps full width -->
-        <div class="card card-full">
-            <div class="card-title">Position Heatmaps</div>
-            <div id="heatmapWrap">
-                <div class="heatmap-container">
-                    <div class="heatmap-subtitle">Player Position</div>
-                    <canvas id="playerHeatmap" class="heatmap"></canvas>
-                </div>
-                <div class="heatmap-container">
-                    <div class="heatmap-subtitle">Shuttle Landing</div>
-                    <canvas id="shuttleHeatmap" class="heatmap"></canvas>
-                </div>
-            </div>
+        <!-- Heatmaps full width/// replace with AI feedback now -->
+        <div class="card full-width">
+            <div class="card-title">AI Performance Feedback</div>
+            <p id="aiFeedbackText"></p>
         </div>
 
         <!-- Rally length bar — full width -->
@@ -305,7 +282,10 @@
 <script>
     // Jinja must stay in HTML
     const stats = {{ stats | tojson }};
-
+    const aiFeedback = {
+        1: {{ ai_feedback_p1|tojson }},
+        2: {{ ai_feedback_p2|tojson }}
+    };
     // guards for missing data until Python functions are written
     if (!stats.p1) stats.p1 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };
     if (!stats.p2) stats.p2 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };

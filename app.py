@@ -3,6 +3,7 @@ import json
 #from flask_sqlalchemy import SQLAlchemy
 from utils.guess_shot import guess_shot
 from utils.generate_stats import generate_stats
+from utils.feedback_api import get_ai_feedback
 import os
 match_file="data/match_data.json"
 app = Flask(__name__)
@@ -58,10 +59,31 @@ def _route():
 
 @app.route('/stats')
 def stats():
-    stats = generate_stats()
-    if not stats:
+    stats_data = generate_stats()
+    try:
+        with open(match_file, "r") as f:
+            match_data = json.load(f)
+    except Exception as e:
+        return f"unable to load match_data: {e}"
+    if not stats_data:
         return "No match data found", 404
-    return render_template('stats.html', stats=stats)
+
+    try:
+        ai_feedback_p1 = get_ai_feedback(match_data, 1)
+    except Exception as e:
+        ai_feedback_p1 = f"AI feedback unavailable for Player 1: {e}"
+
+    try:
+        ai_feedback_p2 = get_ai_feedback(match_data, 2)
+    except Exception as e:
+        ai_feedback_p2 = f"AI feedback unavailable for Player 2: {e}"
+
+    return render_template(
+        'stats.html',
+        stats=stats_data,
+        ai_feedback_p1=ai_feedback_p1,
+        ai_feedback_p2=ai_feedback_p2
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
