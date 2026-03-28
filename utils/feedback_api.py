@@ -23,8 +23,7 @@ def simplify_for_player(match_data, player_num):
                     "is_final": shot.get("isFinal", False),
                     "end_reason": shot.get("endReason")
                 })
-
-        # only keep rallies where this player actually hit at least one shot
+        #only keep one players shots
         if player_shots:
             simplified.append({
                 "winner": rally.get("winner"),

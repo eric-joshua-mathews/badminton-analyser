@@ -9,12 +9,22 @@
     <h3 class="center-align">🏸 Badminton Analyzer</h3>
     <p class="center-align">Choose how you want to start</p>
     <div class="center-align">
-        <a href="{{ url_for('uploads') }}" class="waves-effect waves-light btn blue">
-        upload video</a>
+    <a href="{{ url_for('uploads') }}" class="waves-effect waves-light btn blue">
+        upload video
+    </a>
+    <br><br>
+    <form action="{{ url_for('videoless_input') }}" method="POST" style="display:inline-block;">
+        <label>Player 1 Name</label>
+        <input type="text" name="player1" required>
+        <label>Player 2 Name</label>
+        <input type="text" name="player2" required>
+        <br><br>
+        <button type="submit" class="waves-effect waves-light btn blue">
+            video-less mode
+        </button>
+    </form>
 
-        <a href="{{ url_for('videoless_input') }}" class="waves-effect waves-light btn blue">
-             video-less mode</a>
-    </div>
+</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 </body>
