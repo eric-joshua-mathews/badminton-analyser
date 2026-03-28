@@ -211,7 +211,7 @@ function renderWinRate() {
 
 
 
-//RALLY LENGTH BAR - fin dont need to touch unless  rally_length is touched
+//RALLY LENGTH BAR
 function renderRallyLength() {
     destroyChart('rallyLength');
     const data = stats.rally_lengths;
@@ -245,16 +245,13 @@ function renderRallyLength() {
         }
     });
 }
-
-
 // SCORE PROGRESSION LINE
 function renderScoreProgression() {
     destroyChart('scoreProg');
     const [p1, p2] = stats.score_progression;
-    if (!p1 || p1.length === 0) return;
-
+    if (!p1 || p1.length === 0)
+        return;
     const labels = p1.map((_, i) => `Rally ${i + 1}`);
-
     charts['scoreProg'] = new Chart(document.getElementById('scoreProgChart'), {
         type: 'line',
         data: {
@@ -291,6 +288,7 @@ function renderScoreProgression() {
         }
     });
 }
+//AI FEEDBACK
 function renderAiFeedback() {
     document.getElementById('aiFeedbackText').textContent = aiFeedback[currentPlayer];
 }

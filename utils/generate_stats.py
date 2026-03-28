@@ -106,9 +106,9 @@ def generate_stats():
            },
            "p2":{
                "direction_breakdown":shotDirectionBreakDown(rallies,2),
-               "error_analysis":error_analysis(rallies,2)},
+               "error_analysis":error_analysis(rallies,2),
                "win_rate_by_shot":win_rate_by_shot(rallies,2),
-               "shot_distribution":shot_distribution(rallies,2)
+               "shot_distribution":shot_distribution(rallies,2)}
            }
 #rally length
 def rally_length(rallies):
