@@ -97,34 +97,55 @@ function handlePreset(shotName,btn){
             presetState.count=0;
         }
         const shotDir= presets[shotName][presetState.count%4];//switch directions
-        const playerZoneEl = document.getElementById(shotDir.playerZone);
+        const playerZoneEl = document.getElementById(shotDir.playerZone)
         const shuttleZoneEl = document.getElementById(shotDir.shuttleZone);
-        //coordinate stuff
-        const pBBox= playerZoneEl.getBBox();
-        const sBBox=shuttleZoneEl.getBBox();
-        const pX=Court_X[shotDir.p_side];
-        const pY = state.currentPlayer === 2
-            ? sBBox.y + sBBox.height * 0.2   //top
-            : pBBox.y + pBBox.height * 0.8; //bottom
-        const sX=Court_X[shotDir.s_side];
-        const sY = state.currentPlayer === 2
-            ? pBBox.y + pBBox.height * 0.2    //top
-            : sBBox.y + sBBox.height * 0.8;   //bottom
-        //work out zone type from elements praent group
+        //work out zone type from elements parent group
         const pZoneType = playerZoneEl.closest("g").dataset.zone;
         const sZoneType = shuttleZoneEl.closest("g").dataset.zone;
         const pZoneName= playerZoneEl.dataset.type;
         const sZoneName= shuttleZoneEl.dataset.type;
+        //choose coord boxes
+        let pZoneForCords=playerZoneEl
+        let sZoneForCords=shuttleZoneEl
+
+        if (state.currentPlayer==2){
+            pZoneForCords=document.getElementById("shuttle_"+pZoneName);
+            sZoneForCords=document.getElementById("player_"+sZoneName);
+        }
+        //coordinate stuff
+        const pBBox= pZoneForCords.getBBox();
+        const sBBox=sZoneForCords.getBBox();
+        const pY=pBBox.y+pBBox.height*0.5;
+        const sY=sBBox.y+sBBox.height*0.5;
+
+        const pX = state.currentPlayer === 2
+            ? Court_X[shotDir.p_side === "right" ? "left" : "right"]
+            : Court_X[shotDir.p_side];
+
+        const sX = state.currentPlayer === 2
+            ? Court_X[shotDir.s_side === "right" ? "left" : "right"]
+            : Court_X[shotDir.s_side];
+
+
         //flip for p2
         let finalPZoneType = pZoneType;
         let finalSZoneType = sZoneType;
+        let finalPZoneName=pZoneName;
+        let finalSZoneName=sZoneName;
         if (state.currentPlayer === 2) {
             finalPZoneType = pZoneType === "Player" ? "Shuttle" : "Player";
             finalSZoneType = sZoneType === "Player" ? "Shuttle" : "Player";
+            finalPZoneName=pZoneName;
+            finalSZoneName=sZoneName;
         }
+        console.log({
+            currentPlayer: state.currentPlayer,
+            shotName,
+            p: { zoneType: finalPZoneType, zoneName: finalPZoneName, x: pX, y: pY },
+            s: { zoneType: finalSZoneType, zoneName: finalSZoneName, x: sX, y: sY }});
         //set state
-        state.playerPos  = { zoneType: finalPZoneType, zoneName: pZoneName, x: pX, y: pY };
-        state.shuttlePos = { zoneType: finalSZoneType, zoneName: sZoneName, x: sX, y: sY };
+        state.playerPos  = { zoneType: finalPZoneType, zoneName: finalPZoneName, x: pX, y: pY };
+        state.shuttlePos = { zoneType: finalSZoneType, zoneName: finalSZoneName, x: sX, y: sY };
 
         //place markers
         placeMarker(pX,pY,"player");

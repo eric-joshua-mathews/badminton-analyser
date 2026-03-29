@@ -287,8 +287,8 @@
         2: {{ ai_feedback_p2|tojson }}
     };
     // guards for missing data until Python functions are written
-    if (!stats.p1) stats.p1 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };
-    if (!stats.p2) stats.p2 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, position_heatmap: [], shuttle_heatmap: [], win_rate_by_shot: {} };
+    if (!stats.p1) stats.p1 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, win_rate_by_shot: {} };
+    if (!stats.p2) stats.p2 = { shot_distribution: {}, direction_breakdown: {}, error_analysis: {}, win_rate_by_shot: {} };
     if (!stats.score_progression) stats.score_progression = [[], []];
     if (!stats.total_rallies) stats.total_rallies = 0;
 </script>

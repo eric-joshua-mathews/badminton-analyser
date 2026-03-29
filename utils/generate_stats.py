@@ -102,8 +102,9 @@ def generate_stats():
                "direction_breakdown":shotDirectionBreakDown(rallies,1),
                "error_analysis":error_analysis(rallies,1),
                "win_rate_by_shot":win_rate_by_shot(rallies,1),
-               "shot_distribution":shot_distribution(rallies,1)
+               "shot_distribution":shot_distribution(rallies,1),
            },
+           "total_rallies": len(rallies),
            "p2":{
                "direction_breakdown":shotDirectionBreakDown(rallies,2),
                "error_analysis":error_analysis(rallies,2),
